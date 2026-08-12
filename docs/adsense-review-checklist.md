@@ -22,6 +22,8 @@ approval.
 
 ## Routes and crawlability
 
+- [ ] The homepage initial HTML contains the conversion guide, workflow, and
+  FAQ before JavaScript mounts the interactive converter.
 - [ ] Every route in `site/page-manifest.json` returns `200` on a direct request
   and after refresh.
 - [ ] `/guides/`, `/articles/`, `/troubleshooting/`, `/about/`, `/privacy/`,
