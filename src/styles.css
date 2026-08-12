@@ -821,12 +821,20 @@ button:not(:disabled) {
   background: var(--mint);
 }
 
+.hero-actions .button-link-primary {
+  color: var(--plum);
+}
+
 .button-link:hover,
 .support-provider-link:hover,
 button:not(:disabled):hover {
   border-color: var(--mint);
   color: var(--page);
   background: var(--teal);
+}
+
+.hero-actions .button-link-primary:hover {
+  color: var(--page);
 }
 
 input,
