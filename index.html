@@ -25,8 +25,17 @@
     <title>Sprite to Aseprite Converter</title>
     <style>
       :root {
-        color: #eef4f8;
-        background: #0b1015;
+        --plum: #4e1f6e;
+        --indigo: #3e3e75;
+        --teal: #45a9a9;
+        --mint: #98e8de;
+        --page: #160c23;
+        --surface: #292653;
+        --surface-deep: #20153c;
+        --text: #f7fffe;
+        --muted: #c8ddda;
+        color: var(--text);
+        background: var(--page);
         font-family:
           Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
           "Segoe UI", sans-serif;
@@ -45,8 +54,9 @@
       body {
         margin: 0;
         background:
-          radial-gradient(circle at 50% -12rem, rgba(67, 141, 219, 0.18), transparent 40rem),
-          #0b1015;
+          radial-gradient(circle at 50% -12rem, rgba(152, 232, 222, 0.14), transparent 40rem),
+          radial-gradient(circle at 8% 48rem, rgba(69, 169, 169, 0.1), transparent 30rem),
+          linear-gradient(180deg, var(--page), #1d102e 55%, var(--page));
       }
 
       #app {
@@ -62,9 +72,9 @@
       .panel {
         margin-bottom: 1rem;
         padding: clamp(1rem, 2vw, 1.35rem);
-        border: 1px solid #2f3c49;
+        border: 1px solid rgba(152, 232, 222, 0.22);
         border-radius: 0.9rem;
-        background: #141b22;
+        background: rgba(41, 38, 83, 0.72);
         box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.12);
       }
 
@@ -78,12 +88,12 @@
       h1,
       h2,
       h3 {
-        color: #f8fbfd;
+        color: var(--text);
         line-height: 1.2;
       }
 
       .privacy-notice {
-        color: #9ddfb9;
+        color: var(--mint);
       }
 
       .memory-warning {
@@ -101,17 +111,18 @@
       button {
         min-height: 2.75rem;
         padding: 0.55rem 0.75rem;
-        border: 1px solid #536477;
+        border: 1px solid rgba(152, 232, 222, 0.36);
         border-radius: 0.55rem;
         color: inherit;
-        background: #0d141a;
+        background: var(--surface-deep);
         font: inherit;
       }
 
       button:not(:disabled) {
         cursor: pointer;
-        border-color: #4c91d9;
-        background: #2467aa;
+        border-color: var(--mint);
+        color: var(--plum);
+        background: var(--mint);
       }
 
       button:disabled {
@@ -132,10 +143,10 @@
 
       .drop-zone {
         padding: clamp(1.5rem, 4vw, 2.5rem);
-        border: 2px dashed #536b80;
+        border: 2px dashed var(--teal);
         border-radius: 0.75rem;
         text-align: center;
-        background: #0e151c;
+        background: rgba(78, 31, 110, 0.28);
       }
 
       [role="alert"] {
@@ -160,7 +171,7 @@
       }
 
       a {
-        color: #9ddfb9;
+        color: var(--mint);
       }
 
       .fallback-grid {
@@ -173,15 +184,15 @@
       .content-card,
       .fallback-faq details {
         padding: 1rem;
-        border: 1px solid #34404d;
+        border: 1px solid rgba(152, 232, 222, 0.24);
         border-radius: 0.75rem;
-        background: #10171d;
+        background: var(--surface-deep);
       }
 
       .content-card p,
       .fallback-faq p {
         margin-bottom: 0;
-        color: #cbd8e6;
+        color: var(--muted);
       }
 
       .fallback-process li + li {
@@ -195,7 +206,7 @@
 
       .fallback-faq summary {
         cursor: pointer;
-        color: #f4f8fb;
+        color: var(--mint);
         font-weight: 700;
       }
 
