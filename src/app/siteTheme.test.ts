@@ -43,6 +43,17 @@ describe("site color theme", () => {
     expect(contrast("#f7fffe", "#292653")).toBeGreaterThanOrEqual(4.5);
   });
 
+  it("keeps the primary hero action readable over link-level color rules", async () => {
+    const css = await readFile(path.join(ROOT, "src", "styles.css"), "utf8");
+
+    expect(css).toMatch(
+      /\.hero-actions \.button-link-primary\s*\{[^}]*color:\s*var\(--plum\)/su,
+    );
+    expect(css).toMatch(
+      /\.hero-actions \.button-link-primary:hover\s*\{[^}]*color:\s*var\(--page\)/su,
+    );
+  });
+
   it("ships the palette-matched social preview at its declared dimensions", async () => {
     const image = await readFile(path.join(ROOT, "public", "og.png"));
 
