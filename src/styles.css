@@ -283,6 +283,13 @@ a:focus-visible {
   margin-top: 0;
 }
 
+.guide-detail-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #9ddfb9;
+  font-weight: 700;
+}
+
 .mode-help {
   margin-top: 1rem;
   padding: 0.9rem 1rem;

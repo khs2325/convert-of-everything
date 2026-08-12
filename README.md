@@ -147,10 +147,13 @@ fixtures, and small pull requests all help.
 
 ## Site policy and advertising readiness
 
-The site includes static informational sections for About, Contact, Privacy
-Policy, Terms, and conversion guides. Live ads are not active: the app does not
-load AdSense, analytics, tracking scripts, fake ads, ad placeholders, or a
-backend.
+The converter homepage is surrounded by real static guide, article,
+troubleshooting, About, Privacy, and Terms routes. Their full text is emitted
+in the production HTML instead of depending on the converter JavaScript or
+hash-only navigation. Live ads are not active: the app does not load an
+AdSense ad script, analytics, tracking scripts, fake ads, ad placeholders, or
+a backend. The homepage does contain the configured AdSense account-
+verification metadata.
 
 See [docs/adsense-readiness.md](docs/adsense-readiness.md) and
 [docs/adsense-review-checklist.md](docs/adsense-review-checklist.md) before
@@ -208,6 +211,12 @@ example, the spritesheet JSON importer rejects unsupported rotation values and
 trimmed frames with incomplete or impossible placement metadata.
 
 ## Development checks
+
+The Vite multi-page build reads the public route list from
+`site/page-manifest.json`. Package lifecycle scripts generate real HTML entry
+points and both sitemaps before development, tests, and production builds. See
+[docs/static-site-architecture.md](docs/static-site-architecture.md) for the
+source layout, content rules, and page-addition workflow.
 
 ```bash
 npm run typecheck

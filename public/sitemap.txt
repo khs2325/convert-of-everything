@@ -1,1 +1,15 @@
 https://sprite-to-aseprite.pages.dev/
+https://sprite-to-aseprite.pages.dev/guides/
+https://sprite-to-aseprite.pages.dev/guides/png-sequence-to-aseprite/
+https://sprite-to-aseprite.pages.dev/guides/spritesheet-to-aseprite/
+https://sprite-to-aseprite.pages.dev/guides/pixilart-to-aseprite/
+https://sprite-to-aseprite.pages.dev/guides/piskel-to-aseprite/
+https://sprite-to-aseprite.pages.dev/guides/gif-apng-to-aseprite/
+https://sprite-to-aseprite.pages.dev/guides/project-files-to-aseprite/
+https://sprite-to-aseprite.pages.dev/articles/
+https://sprite-to-aseprite.pages.dev/articles/aseprite-frames-layers-cels/
+https://sprite-to-aseprite.pages.dev/articles/browser-local-conversion/
+https://sprite-to-aseprite.pages.dev/troubleshooting/
+https://sprite-to-aseprite.pages.dev/about/
+https://sprite-to-aseprite.pages.dev/privacy/
+https://sprite-to-aseprite.pages.dev/terms/

@@ -17,3 +17,11 @@ prompts/generated/*.log
 tmp/
 test-output/
 *.log
+
+# generated multi-page HTML entry points (source lives in site/)
+/about/
+/articles/
+/guides/
+/privacy/
+/terms/
+/troubleshooting/

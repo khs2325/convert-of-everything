@@ -60,7 +60,7 @@ export function createSupportEntryPoint(
 ): HTMLAnchorElement {
   const link = document.createElement("a");
   link.className = "support-entry-link";
-  link.href = "#support";
+  link.href = "/#support";
   link.textContent = label;
   return link;
 }

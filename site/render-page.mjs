@@ -1,0 +1,78 @@
+const ORIGIN = "https://sprite-to-aseprite.pages.dev";
+
+const NAVIGATION = [
+  ["Converter", "/"],
+  ["Guides", "/guides/"],
+  ["Articles", "/articles/"],
+  ["Troubleshooting", "/troubleshooting/"],
+  ["About", "/about/"],
+];
+
+function escapeHtml(value) {
+  return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
+function navigation(route) {
+  return NAVIGATION.map(([label, href]) => {
+    const current = route === href || (href !== "/" && route.startsWith(href));
+    return `<a href="${href}"${current ? ' aria-current="page"' : ""}>${label}</a>`;
+  }).join("");
+}
+
+function breadcrumb(page) {
+  if (page.kind !== "guide" && page.kind !== "article") return "";
+  const parentHref = page.kind === "guide" ? "/guides/" : "/articles/";
+  const parentLabel = page.kind === "guide" ? "Guides" : "Articles";
+  return `<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Converter</a><span aria-hidden="true">/</span><a href="${parentHref}">${parentLabel}</a></nav>`;
+}
+
+export function renderPage(page, content) {
+  const canonical = `${ORIGIN}${page.route}`;
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(page.title)}</title>
+    <meta name="description" content="${escapeHtml(page.description)}">
+    <link rel="canonical" href="${canonical}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${escapeHtml(page.title)}">
+    <meta property="og:description" content="${escapeHtml(page.description)}">
+    <meta property="og:url" content="${canonical}">
+    <meta property="og:image" content="${ORIGIN}/og.png">
+    <meta property="og:image:width" content="1536">
+    <meta property="og:image:height" content="1024">
+    <meta property="og:image:alt" content="Sprite frames moving into an editable timeline">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${escapeHtml(page.title)}">
+    <meta name="twitter:description" content="${escapeHtml(page.description)}">
+    <meta name="twitter:image" content="${ORIGIN}/og.png">
+    <link rel="stylesheet" href="/assets/content.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Sprite to Aseprite home"><span aria-hidden="true">S→A</span><strong>Sprite to Aseprite</strong></a>
+      <nav class="primary-nav" aria-label="Primary navigation">${navigation(page.route)}</nav>
+    </header>
+    <main id="content" class="reading-shell">
+      ${breadcrumb(page)}
+      <article class="article">
+        <header class="article-header">
+          <p class="eyebrow">${escapeHtml(page.eyebrow)}</p>
+          <h1>${escapeHtml(page.h1)}</h1>
+          <p class="dek">${escapeHtml(page.description)}</p>
+        </header>
+        ${content}
+      </article>
+    </main>
+    <footer class="page-footer">
+      <p>Browser-local sprite conversion with documented, conservative format support.</p>
+      <nav aria-label="Policy links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/khs2325/sprite-to-aseprite">GitHub repository</a></nav>
+    </footer>
+  </body>
+</html>`;
+}
+
+export { ORIGIN };

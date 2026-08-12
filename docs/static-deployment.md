@@ -17,8 +17,11 @@ npm run test
 npm run build
 ```
 
-The final command creates the production output in `dist/`. Treat that
-directory as generated output: deploy it, but do not edit or commit it.
+The `prebuild` lifecycle first generates the multi-page HTML entry points and
+both sitemaps from `site/page-manifest.json`. The final command creates the
+production output in `dist/`. Treat the generated route directories and
+`dist/` as generated output: deploy them, but do not edit or commit them. See
+[static-site-architecture.md](static-site-architecture.md).
 
 The default Vite configuration builds for the root of a domain, such as
 `https://sprites.example/`. If the site will be served from a subpath, replace
@@ -53,10 +56,12 @@ Configure any static hosting provider or web server as follows:
 5. Preserve the generated directory structure and normal MIME types for HTML,
    JavaScript, CSS, and image files.
 
-Only the generated `dist/` contents are needed at runtime. Do not publish
-`node_modules/`, repository source files, local environment files, test
-fixtures, or user artwork. The current app has no client-side routes, so a
-catch-all rewrite to `index.html` is not required. In particular, do not
+Only the generated `dist/` contents are needed at runtime. Preserve nested
+directory indexes such as `guides/index.html` and
+`guides/pixilart-to-aseprite/index.html`. Do not publish `node_modules/`,
+repository source files, local environment files, test fixtures, or user
+artwork. The site uses real HTML routes rather than client-side routing, so a
+catch-all rewrite to the homepage is not required. In particular, do not
 rewrite missing asset requests to HTML, because that hides configuration
 errors and prevents the app from loading.
 
@@ -98,23 +103,18 @@ After publishing, verify the deployed URL in a clean browser session:
 
 1. Confirm that the page loads over HTTPS without console errors or failed
    asset requests.
-2. Confirm that every required policy and guide section link scrolls to a
-   visible section on the static page:
-   - About: `#about`
-   - Contact: `#contact`
-   - Privacy Policy: `#privacy-policy`
-   - Terms: `#terms`
-   - Guides: `#guides`
-   - Browser-local conversion guide: `#browser-local-conversion-guide`
-   - Supported formats guide: `#supported-formats-guide`
-   - Conversion limitations guide: `#conversion-limitations-guide`
+2. Open the real routes directly and refresh them, including `/guides/`,
+   `/articles/browser-local-conversion/`, `/troubleshooting/`, `/about/`,
+   `/privacy/`, and `/terms/`. Confirm their HTML is served instead of a
+   homepage catch-all or 404 response.
 3. Use a small, synthetic PNG fixture to complete a conversion and download
    the generated `.aseprite` file.
 4. While selecting, converting, and downloading, inspect the browser's Network
    panel. There should be no request containing the fixture, its metadata, or
    the generated file.
-5. Refresh the deployed URL and repeat the check after clearing the browser
-   cache to catch incorrect base paths or stale `index.html` caching.
+5. Follow primary and footer navigation with the Back button, then refresh a
+   nested URL after clearing the browser cache to catch incorrect base paths or
+   stale `index.html` caching.
 
 Do not use private artwork for deployment verification. A synthetic fixture is
 enough to confirm that the static app loads and the browser-only conversion

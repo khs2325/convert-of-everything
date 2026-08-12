@@ -1,68 +1,70 @@
 # AdSense readiness
 
-AdSense is not active yet on Sprite to Aseprite Converter.
+Sprite to Aseprite Converter has a crawlable multi-page content architecture
+surrounding the browser-local converter. This improves independent page value,
+technical transparency, navigation, and review readiness. It does not
+guarantee AdSense approval.
 
-This project currently includes only informational policy sections. It does not
-load the Google AdSense script, analytics, tracking scripts, fake ads, ad
-placeholders, or any backend.
+The homepage contains the configured Google AdSense account-verification meta
+tag. The current repository does not load a live AdSense script, render an ad
+unit, add analytics or conversion telemetry, display fake ads, or provide a
+conversion backend.
 
-## Before live ads are added
+## Public architecture
 
-- Use [adsense-review-checklist.md](adsense-review-checklist.md) before
-  requesting review or enabling any ad code.
-- The site needs an approved Google AdSense account before live ads are added.
-- The future AdSense publisher ID should not be hardcoded until it is available.
-- Add `ads.txt` later after the AdSense publisher ID is known.
-- Before requesting review, verify the deployed static page reaches About
-  (`#about`), Contact (`#contact`), Privacy Policy (`#privacy-policy`), Terms
-  (`#terms`), Guides (`#guides`), Browser-local conversion guide
-  (`#browser-local-conversion-guide`), Supported formats guide
-  (`#supported-formats-guide`), and Conversion limitations guide
-  (`#conversion-limitations-guide`).
-- Keep the browser-local conversion promise accurate: files are processed in
-  the browser through browser APIs, are not uploaded to a project server for
-  conversion, and generated downloads are created locally.
-- Keep external sharing distinct from conversion privacy. Files attached to
-  issue trackers, support requests, cloud drives, chat tools, payment provider
-  pages, or other services are governed by those services.
-- Keep payment handling off-site through external support providers only; this
-  site does not process payment information.
-- Review any proposed ad placeholder in the live converter UI before release.
-  If it is confusing, unnecessary, too close to conversion controls, or
-  distracts from selecting files, converting frames, or downloading output,
-  hide it or remove it.
+`site/page-manifest.json` is the single indexable-page list. It drives Vite
+multi-page inputs and both sitemaps. Long-form pages are generated as real
+directory-index HTML, so their headings and prose are present without running
+the converter application.
 
-## Placement rules
+Before requesting review, deploy and directly refresh at least:
 
-Ads must not be placed near:
+- `/`;
+- `/guides/` and every linked detailed guide;
+- `/articles/` and both technical articles;
+- `/troubleshooting/`;
+- `/about/`;
+- `/privacy/`; and
+- `/terms/`.
 
-- file picker controls;
-- drag-and-drop areas;
-- Convert buttons;
-- Download buttons;
-- Support buttons or support provider links;
-- error messages;
-- selected/private file information; or
-- any control where users may accidentally activate an ad.
-
-Acceptable future placements include:
-
-- below guide content;
-- between guide sections with enough spacing; or
-- near the bottom of the main page, away from converter controls.
-
-Do not add visible ad placeholders until the final ad layout is ready for
-review. Future placeholders or live ads must remain clearly separated from
-converter controls and must not show fake ads or encourage ad interaction.
-
-Safety invariant: ad elements must stay outside import, selected-file,
-private-file, error, conversion, download, and support UI regions. The
-DOM-free AdSense readiness tests enforce this invariant for future ad markup
-such as ad placeholders, `adsbygoogle` elements, or `data-ad-*` elements.
+Every indexable page must have its own title, description, canonical URL, H1,
+useful body, and ordinary internal links. Automated production-build tests
+check these properties and compare the sitemap with built files.
 
 ## Content accuracy
 
-Do not claim perfect or lossless conversion. Do not claim flat images can recover
-original source layers. Supported project formats may preserve supported raster
-layer data only when the source format contains that data and the documented
-importer subset supports it.
+Do not claim perfect, lossless, or universal conversion. PNG, spritesheet, GIF,
+and APNG sources rebuild rendered frames but cannot recover original editor
+layers. Say that layers are preserved only when a supported source format
+contains supported layer data.
+
+New content must solve a distinct user need and draw primarily from project
+code, tests, synthetic fixtures, and maintained format notes. Do not add thin,
+keyword-swapped, repetitive, or doorway pages. Do not invent testimonials,
+statistics, affiliations, customers, qualifications, or compatibility claims.
+
+## Privacy boundary
+
+Files are processed through browser APIs and are not uploaded to a project
+server for conversion. Generated downloads are created locally. Keep that
+promise distinct from:
+
+- ordinary Cloudflare requests for public HTML, CSS, JavaScript, and assets;
+- a visitor following an external GitHub or support link; and
+- a visitor voluntarily attaching files to an issue, email, cloud drive, chat,
+  or other external service.
+
+## Future advertising placement
+
+Do not add fake ads or placeholders merely to appear monetized. If live ads are
+enabled later, review the deployed privacy policy and keep advertising clearly
+outside:
+
+- file picker and drag-and-drop regions;
+- selected or private file information;
+- conversion and download controls;
+- status and error messages; and
+- support buttons or provider links.
+
+Ads must never resemble a converter action or encourage clicks. Re-run the
+DOM and built-HTML safety tests after any advertising change.

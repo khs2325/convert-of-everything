@@ -1,5 +1,5 @@
 export type SitePageLink = {
-  href: `#${string}`;
+  href: string;
   id: string;
   label: string;
 };
@@ -22,28 +22,11 @@ type FormatSupport = {
 };
 
 export const INFORMATION_PAGE_LINKS: readonly SitePageLink[] = [
-  { href: "#converter", id: "converter", label: "Converter" },
-  { href: "#how-it-works", id: "how-it-works", label: "How it works" },
-  {
-    href: "#supported-formats",
-    id: "supported-formats",
-    label: "Supported formats",
-  },
-  { href: "#format-guides", id: "format-guides", label: "Format guides" },
-  { href: "#privacy-policy", id: "privacy-policy", label: "Privacy" },
-  {
-    href: "#conversion-limitations-guide",
-    id: "conversion-limitations-guide",
-    label: "Limitations",
-  },
-  {
-    href: "#troubleshooting",
-    id: "troubleshooting",
-    label: "Troubleshooting",
-  },
-  { href: "#faq", id: "faq", label: "FAQ" },
-  { href: "#about", id: "about", label: "About" },
-  { href: "#contact", id: "contact", label: "Contact" },
+  { href: "/", id: "converter", label: "Converter" },
+  { href: "/guides/", id: "guides", label: "Guides" },
+  { href: "/articles/", id: "articles", label: "Articles" },
+  { href: "/troubleshooting/", id: "troubleshooting", label: "Troubleshooting" },
+  { href: "/about/", id: "about", label: "About" },
 ];
 
 export const SUPPORTED_FORMATS: readonly FormatSupport[] = [
@@ -508,6 +491,65 @@ export function createModeDecisionHelper(document: Document): HTMLElement {
     ]),
   );
   section.append(heading, intro, cards);
+  return section;
+}
+
+export function createHomepageOverview(document: Document): HTMLElement {
+  const section = document.createElement("section");
+  const heading = document.createElement("h2");
+  const introduction = createParagraph(
+    document,
+    "The converter rebuilds timelines from flat frame sources and preserves layers only when a supported project file actually contains supported raster layer data.",
+  );
+  const cards = document.createElement("div");
+  const guidesCard = createCard(document, "Choose the right source", [
+    createParagraph(
+      document,
+      "Compare PNG sequences, spritesheets, animated images, and project files before converting. The guide hub explains frame timing, layer limits, and expected output.",
+    ),
+  ]);
+  const architectureCard = createCard(document, "Understand the output", [
+    createParagraph(
+      document,
+      "Learn how canvas, frames, layers, and cels fit together in the canonical SpriteProject model and the generated Aseprite file.",
+    ),
+  ]);
+  const troubleshootingCard = createCard(document, "Diagnose a failure", [
+    createParagraph(
+      document,
+      "Find practical causes and fixes for unavailable conversion, mismatched dimensions, malformed metadata, unsupported features, and browser memory limits.",
+    ),
+  ]);
+  const addLink = (
+    card: HTMLElement,
+    href: string,
+    label: string,
+  ): void => {
+    const link = document.createElement("a");
+    link.href = href;
+    link.textContent = label;
+    link.className = "guide-detail-link";
+    card.append(link);
+  };
+
+  section.className = "panel homepage-overview";
+  section.setAttribute("aria-labelledby", "homepage-overview-heading");
+  heading.id = "homepage-overview-heading";
+  heading.textContent = "Documentation built around the converter";
+  cards.className = "card-grid";
+  addLink(guidesCard, "/guides/", "Open the conversion guides");
+  addLink(
+    architectureCard,
+    "/articles/aseprite-frames-layers-cels/",
+    "Read about frames, layers, and cels",
+  );
+  addLink(
+    troubleshootingCard,
+    "/troubleshooting/",
+    "Open troubleshooting",
+  );
+  cards.append(guidesCard, architectureCard, troubleshootingCard);
+  section.append(heading, introduction, cards);
   return section;
 }
 

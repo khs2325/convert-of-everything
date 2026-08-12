@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "site:generate": "node scripts/generate-site.mjs",
+    "predev": "npm run site:generate",
     "dev": "vite",
     "prompt": "node scripts/make-prompt.mjs",
     "codex:task": "node scripts/run-codex-task.mjs",
@@ -12,7 +14,9 @@
     "auto-dev:until-stop": "node scripts/auto-dev-cycle.mjs --until-stop",
     "auto-dev:generate-tasks": "node scripts/auto-dev-cycle.mjs --generate-tasks",
     "typecheck": "tsc --noEmit",
+    "pretest": "npm run site:generate",
     "test": "vitest run",
+    "prebuild": "npm run site:generate",
     "build": "vite build"
   },
   "devDependencies": {

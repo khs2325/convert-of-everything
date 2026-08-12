@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { mountConverterUi } from "./converterUi";
 import {
-  createInformationalPages,
+  createHomepageOverview,
   createModeDecisionHelper,
   createSiteNavigationLinks,
   INFORMATION_PAGE_LINKS,
@@ -232,135 +232,39 @@ function getUnsafeAdPlacements(root: ElementStub): ElementStub[] {
 }
 
 describe("AdSense readiness site content", () => {
-  it("defines navigation for every required static informational section", () => {
+  it("uses ordinary multi-page links for the primary site navigation", () => {
     expect(INFORMATION_PAGE_LINKS.map((page) => page.id)).toEqual([
       "converter",
-      "how-it-works",
-      "supported-formats",
-      "format-guides",
-      "privacy-policy",
-      "conversion-limitations-guide",
+      "guides",
+      "articles",
       "troubleshooting",
-      "faq",
       "about",
-      "contact",
     ]);
 
     const links = createSiteNavigationLinks(createDocument());
     expect(links.map((link) => link.href)).toEqual([
-      "#converter",
-      "#how-it-works",
-      "#supported-formats",
-      "#format-guides",
-      "#privacy-policy",
-      "#conversion-limitations-guide",
-      "#troubleshooting",
-      "#faq",
-      "#about",
-      "#contact",
+      "/",
+      "/guides/",
+      "/articles/",
+      "/troubleshooting/",
+      "/about/",
     ]);
   });
 
-  it("renders a section target for every static informational link", () => {
-    const document = new DocumentStub();
-    const root = document.createElement("main");
-    const links = createSiteNavigationLinks(document as unknown as Document);
-    mountConverterUi(root as unknown as HTMLElement);
-    const renderedSectionIds = new Set(
-      findAll(root, (element) => element.tagName === "section").map(
-        (element) => element.id,
-      ),
+  it("keeps concise useful context around the homepage converter", () => {
+    const overview = createHomepageOverview(createDocument()) as unknown as ElementStub;
+    const text = getText(overview);
+    const hrefs = findAll(overview, (element) => element.tagName === "a").map(
+      (element) => element.href,
     );
 
-    expect(links.map((link) => link.href)).toEqual([
-      "#converter",
-      "#how-it-works",
-      "#supported-formats",
-      "#format-guides",
-      "#privacy-policy",
-      "#conversion-limitations-guide",
-      "#troubleshooting",
-      "#faq",
-      "#about",
-      "#contact",
-    ]);
-    expect(
-      links.map((link) => link.href.slice(1)).every((id) =>
-        renderedSectionIds.has(id),
-      ),
-    ).toBe(true);
-  });
-
-  it("renders required privacy policy wording for browser-local conversion and future ads", () => {
-    const pages = createInformationalPages(createDocument()) as unknown as ElementStub;
-    const text = getText(pages);
-
-    expect(text).toContain("File conversion happens in your browser.");
-    expect(text).toContain(
-      "Files are not uploaded to a project server for conversion.",
-    );
-    expect(text).toContain(
-      "The site may use third-party advertising services in the future, including Google AdSense.",
-    );
-    expect(text).toContain(
-      "Third-party vendors, including Google, may use cookies to serve ads.",
-    );
-    expect(text).toContain(
-      "Google may use advertising cookies to serve ads based on prior visits to this site or other sites.",
-    );
-    expect(text).toContain(
-      "Users can opt out of personalized advertising through Google Ads Settings.",
-    );
-    expect(text).toContain("No payment information is processed by this site.");
-  });
-
-  it("links Google Ads Settings safely without adding ad or tracking scripts", () => {
-    const pages = createInformationalPages(createDocument()) as unknown as ElementStub;
-    const links = findAll(
-      pages,
-      (element) => element.tagName === "a" && element.textContent === "Google Ads Settings",
-    );
-
-    expect(links).toHaveLength(1);
-    expect(links[0]).toMatchObject({
-      href: "https://adssettings.google.com/",
-      target: "_blank",
-      rel: "noopener noreferrer",
-    });
-    expect(findAll(pages, (element) => element.tagName === "script")).toHaveLength(0);
-  });
-
-  it("renders substantial public product content sections", () => {
-    const pages = createInformationalPages(createDocument()) as unknown as ElementStub;
-    const text = getText(pages);
-
-    for (const heading of [
-      "How conversion works",
-      "Supported formats",
-      "Format guides",
-      "Privacy Policy",
-      "Conversion limitations",
-      "Troubleshooting",
-      "FAQ",
-      "About",
-      "Contact",
-    ]) {
-      expect(findSectionByHeading(pages, heading)).toBeTruthy();
-    }
-    expect(text).toContain("SpriteProject");
-    expect(text).toContain("PNG sequence");
-    expect(text).toContain("Spritesheet grid");
-    expect(text).toContain("Spritesheet PNG + JSON");
-    expect(text).toContain("Piskel project");
-    expect(text).toContain("Pixil/Pixilart project");
-    expect(text).toContain("OpenRaster project");
-    expect(text).toContain("Pixelorama project");
-    expect(text).toContain("Krita project");
-    expect(text).toContain("PSD project");
-    expect(text).toContain("GIF animation");
-    expect(text).toContain("APNG animation");
-    expect(text).toContain("Flat images do not contain original layers");
-    expect(text.length).toBeGreaterThan(12000);
+    expect(text).toContain("rebuilds timelines from flat frame sources");
+    expect(text).toContain("preserves layers only when");
+    expect(hrefs).toEqual(expect.arrayContaining([
+      "/guides/",
+      "/articles/aseprite-frames-layers-cels/",
+      "/troubleshooting/",
+    ]));
   });
 
   it("renders a mode decision helper derived from implemented formats", () => {

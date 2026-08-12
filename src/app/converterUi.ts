@@ -54,7 +54,7 @@ import {
 } from "./largeFileWarning";
 import { mountPreviewTimelineUi } from "./previewTimeline";
 import {
-  createInformationalPages,
+  createHomepageOverview,
   createModeDecisionHelper,
   createSiteNavigationLinks,
 } from "./siteContent";
@@ -900,14 +900,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   header.className = "site-header";
   siteNav.setAttribute("aria-label", "Site links");
   siteNav.className = "site-nav";
-  siteNav.append(
-    ...createSiteNavigationLinks(document).filter((link) =>
-      ["Converter", "Supported formats", "Format guides", "FAQ"].includes(
-        link.textContent ?? "",
-      ),
-    ),
-    createSupportEntryPoint(document),
-  );
+  siteNav.append(...createSiteNavigationLinks(document), createSupportEntryPoint(document));
   hero.className = "hero";
   hero.setAttribute("aria-labelledby", "hero-heading");
   eyebrow.className = "eyebrow";
@@ -934,10 +927,10 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   startLink.href = "#converter";
   startLink.textContent = "Start converting";
   startLink.className = "button-link button-link-primary";
-  formatsLink.href = "#supported-formats";
+  formatsLink.href = "/guides/";
   formatsLink.textContent = "View supported formats";
   formatsLink.className = "button-link";
-  guidesLink.href = "#format-guides";
+  guidesLink.href = "/guides/";
   guidesLink.textContent = "Read conversion guides";
   guidesLink.className = "button-link";
   heroActions.append(startLink, formatsLink, guidesLink);
@@ -1164,7 +1157,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const layerContainer = document.createElement("div");
   const exportContainer = document.createElement("div");
   const supportSection = createSupportSection(document, DEFAULT_SUPPORT_LINKS);
-  const informationalPages = createInformationalPages(document);
+  const homepageOverview = createHomepageOverview(document);
   const footer = createSupportFooter(document);
   workspace.className = "workspace result-workspace";
   workspace.hidden = true;
@@ -1179,12 +1172,21 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   footerNavigation.className = "footer-nav";
   footerNavigation.setAttribute("aria-label", "Footer links");
   footerNavigation.append(...createSiteNavigationLinks(document));
+  for (const [href, label] of [
+    ["/privacy/", "Privacy"],
+    ["/terms/", "Terms"],
+  ] as const) {
+    const link = document.createElement("a");
+    link.href = href;
+    link.textContent = label;
+    footerNavigation.append(link);
+  }
   footer.append(footerNavigation);
   root.append(
     header,
     converterSection,
     modeDecisionHelper,
-    informationalPages,
+    homepageOverview,
     supportSection,
     footer,
   );

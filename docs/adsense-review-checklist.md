@@ -1,91 +1,81 @@
 # AdSense review checklist
 
-Use this checklist before requesting AdSense review or before enabling any ad
-code. It prepares the static site for review without adding live ads,
-analytics, tracking, fake traffic, or testimonial claims.
+Use this checklist after deploying the multi-page static build and before the
+next AdSense review. Passing it improves readiness but does not guarantee
+approval.
 
-## Content
+## Product and content
 
-- [ ] The home page clearly describes the tool as Sprite to Aseprite Converter.
-- [ ] Conversion wording says the app can rebuild timelines and convert frames
-  into `.aseprite` files.
-- [ ] The site does not claim perfect, guaranteed, or lossless conversion.
-- [ ] Flat PNG sequences, spritesheets, GIF, and APNG are described as rendered
-  frame sources, not editable layer sources.
-- [ ] The site does not claim that layers can be recovered from a flat PNG.
-- [ ] Layer wording says layers are preserved only when the source format
-  contains layer data and the supported importer preserves it.
-- [ ] Browser-local conversion claims are visible and accurate: selected source
-  files are processed in the browser and are not uploaded to a project server
-  for conversion.
-- [ ] Limitations are visible before review, including unsupported source
-  features, browser memory limits, and the difference between converting frames
-  and reconstructing absent source data.
+- [ ] `/` immediately explains the converter and keeps the conversion controls
+  easy to reach.
+- [ ] Guides answer distinct source-format tasks rather than repeating one
+  keyword-swapped article.
+- [ ] Technical claims match importers, exporters, tests, synthetic fixtures,
+  and maintained format notes.
+- [ ] Flat PNG, spritesheet, GIF, and APNG inputs are described as rendered
+  frame sources, not recoverable layer sources.
+- [ ] Layer wording is conditional on supported layer data in the source.
+- [ ] No page claims perfect, lossless, universal, or guaranteed conversion.
+- [ ] No fake reviews, users, statistics, benchmarks, company history,
+  partnerships, endorsements, or qualifications appear.
+- [ ] The site has no visible “under construction” or placeholder content.
 
-## Navigation
+## Routes and crawlability
 
-- [ ] The deployed page loads over HTTPS without broken JavaScript or CSS assets.
-- [ ] The About section is reachable from normal page navigation and `#about`.
-- [ ] The Contact section is reachable from normal page navigation and
-  `#contact`.
-- [ ] The Privacy Policy section is reachable from normal page navigation and
-  `#privacy-policy`.
-- [ ] The Terms section is reachable from normal page navigation and `#terms`.
-- [ ] The Guides section is reachable from normal page navigation and `#guides`.
-- [ ] The browser-local conversion guide is reachable at
-  `#browser-local-conversion-guide`.
-- [ ] The supported formats guide is reachable at `#supported-formats-guide`.
-- [ ] The conversion limitations guide is reachable at
-  `#conversion-limitations-guide`.
+- [ ] Every route in `site/page-manifest.json` returns `200` on a direct request
+  and after refresh.
+- [ ] `/guides/`, `/articles/`, `/troubleshooting/`, `/about/`, `/privacy/`,
+  and `/terms/` are reachable through ordinary navigation.
+- [ ] Each indexable page has one useful H1, a unique title, a unique matching
+  canonical, and a distinct description.
+- [ ] Long-form text appears directly in built HTML without converter
+  JavaScript execution.
+- [ ] `sitemap.xml` contains every intended indexable route and no missing
+  route; `robots.txt` points to it.
+- [ ] Former content hashes redirect to the corresponding real page while
+  `#converter` and `#support` remain local homepage targets.
 
-## Policy Pages
+## Trust and policy
 
-- [ ] About content identifies what the site does and does not imply an
-  unverified company, team, endorsement, or user base.
-- [ ] Contact content provides a real way to report bugs, policy issues,
-  security concerns, or support problems.
-- [ ] Privacy wording states that artwork and metadata selected for conversion
-  stay in the browser and are not uploaded for conversion.
-- [ ] Privacy wording distinguishes browser-local conversion from ordinary
-  static-host requests for HTML, JavaScript, CSS, images, and other bundled
-  assets.
-- [ ] Privacy wording does not say ads, analytics, tracking, or payment
-  processing are active unless those features are actually deployed.
-- [ ] Terms content does not promise uninterrupted service, guaranteed file
-  compatibility, or complete recovery of source data.
-- [ ] Any optional support wording says support is voluntary and does not unlock
-  hidden conversion functionality.
+- [ ] About identifies the open-source project and public maintainer without
+  inventing a company, staff, users, or endorsements.
+- [ ] Contact guidance provides a real public repository path and warns against
+  sharing private artwork.
+- [ ] Privacy distinguishes local artwork processing from Cloudflare static
+  resource requests and external links.
+- [ ] Privacy accurately reflects the deployed status of ads, analytics,
+  tracking, error reporting, and payments.
+- [ ] Terms avoid guarantees of availability, compatibility, or recovery.
+- [ ] Optional support remains voluntary and unlocks no hidden functionality.
 
-## Deployment
+## Deployment and browser-local processing
 
-- [ ] Deploy only generated static assets; do not publish repository source,
-  tests, fixtures, local environment files, or user artwork.
-- [ ] Keep the production site static: no upload endpoint, server-side
-  conversion, cloud artwork storage, analytics, error-reporting script, or
-  remote image-processing API.
-- [ ] Verify a small synthetic conversion in the deployed site.
-- [ ] During selection, conversion, and download, the browser Network panel
-  shows no request containing the source fixture, source metadata, or generated
-  `.aseprite` file.
-- [ ] The deployed build matches [static-deployment.md](static-deployment.md),
-  including HTTPS, correct asset paths, and cache behavior.
+- [ ] Deploy only `dist/`; do not publish source, tests, fixtures, environment
+  files, or user artwork.
+- [ ] Nested directory-index routes work on Cloudflare Pages without a
+  single-page-app catch-all.
+- [ ] A small synthetic conversion completes and downloads in production.
+- [ ] The Network panel shows no request containing selected source bytes,
+  embedded source metadata, or generated Aseprite bytes during conversion.
+- [ ] No upload endpoint, server conversion, cloud artwork storage, or remote
+  image-processing fallback is active.
 
-## No Live Ads
+## Advertising safety
 
-- [ ] No Google AdSense script is loaded.
-- [ ] No `adsbygoogle` element or `data-ad-*` markup is present.
-- [ ] No fake ads, fake ad placeholders, or simulated ad units are shown.
-- [ ] No analytics, tracking scripts, or fake traffic mechanisms are added.
-- [ ] No AdSense publisher ID is committed or shipped until the real approved ID
-  is known and a separate task enables ads.
-- [ ] No `ads.txt` is added until the publisher ID is known and the site is ready
-  for the official AdSense entry.
-- [ ] Future ad placement remains outside file picker, drag-and-drop,
-  conversion, error, download, private file, and support-link UI regions.
+- [ ] The configured AdSense verification metadata is still valid.
+- [ ] No live AdSense script or ad unit is described as active unless it is
+  actually deployed and the privacy policy has been reviewed.
+- [ ] No fake ad, placeholder, simulated unit, click prompt, fake traffic, or
+  misleading sponsored content exists.
+- [ ] Any future ad remains visually and structurally separate from selection,
+  conversion, errors, downloads, private-file data, and support links.
 
-## Final Pre-Review Check
+## Verification
 
-- [ ] Re-read [adsense-readiness.md](adsense-readiness.md).
-- [ ] Run `node scripts/auto-dev-cycle.mjs --dry-run`.
-- [ ] Confirm the diff contains documentation only and no changes to code,
-  secrets, generated files, workflows, dependencies, or tests.
+- [ ] `npm run typecheck` passes.
+- [ ] `npm run test` passes.
+- [ ] `npm run build` passes.
+- [ ] Representative files under `dist/guides/` and `dist/articles/` contain
+  their full article text.
+- [ ] The production preview and deployed Cloudflare Pages routes work with
+  direct navigation, internal links, Back, and refresh.
