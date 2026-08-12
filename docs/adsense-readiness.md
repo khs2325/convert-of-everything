@@ -10,6 +10,12 @@ tag. The current repository does not load a live AdSense script, render an ad
 unit, add analytics or conversion telemetry, display fake ads, or provide a
 conversion backend.
 
+The homepage also includes substantial project-specific guidance directly in
+its initial HTML. Visitors and crawlers can understand source-format choices,
+browser-local processing, verification steps, and conversion limits before
+the interactive converter JavaScript runs. The mounted application retains
+equivalent guidance instead of replacing it with controls alone.
+
 ## Public architecture
 
 `site/page-manifest.json` is the single indexable-page list. It drives Vite

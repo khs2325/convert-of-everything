@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { mountConverterUi } from "./converterUi";
 import {
+  createHomepageGuide,
   createHomepageOverview,
   createModeDecisionHelper,
   createSiteNavigationLinks,
@@ -263,6 +264,26 @@ describe("AdSense readiness site content", () => {
     expect(hrefs).toEqual(expect.arrayContaining([
       "/guides/",
       "/articles/aseprite-frames-layers-cels/",
+      "/troubleshooting/",
+    ]));
+  });
+
+  it("provides substantial project-specific guidance on the interactive homepage", () => {
+    const guide = createHomepageGuide(createDocument()) as unknown as ElementStub;
+    const text = getText(guide);
+    const hrefs = findAll(guide, (element) => element.tagName === "a").map(
+      (element) => element.href,
+    );
+
+    expect(text).toContain("A practical guide to rebuilding sprite projects");
+    expect(text).toContain("What happens inside the browser");
+    expect(text).toContain("No blanket lossless claim is made");
+    expect(text).toContain("recover original layers");
+    expect(text.match(/[A-Za-z0-9][A-Za-z0-9'’-]*/gu)?.length ?? 0)
+      .toBeGreaterThan(650);
+    expect(hrefs).toEqual(expect.arrayContaining([
+      "/guides/",
+      "/articles/browser-local-conversion/",
       "/troubleshooting/",
     ]));
   });

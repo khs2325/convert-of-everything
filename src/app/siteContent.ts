@@ -553,6 +553,153 @@ export function createHomepageOverview(document: Document): HTMLElement {
   return section;
 }
 
+function createHomepageQuestion(
+  document: Document,
+  question: string,
+  answer: string,
+): HTMLDetailsElement {
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  summary.textContent = question;
+  details.append(summary, createParagraph(document, answer));
+  return details;
+}
+
+export function createHomepageGuide(document: Document): HTMLElement {
+  const section = document.createElement("section");
+  const heading = document.createElement("h2");
+  const introduction = createParagraph(
+    document,
+    "A useful conversion starts with the structure that remains in the source file. This guide explains what the browser can rebuild, what each source can preserve, and how to verify the result instead of treating every image as equivalent.",
+  );
+  const sourceCards = document.createElement("div");
+  const projectCard = createCard(document, "Start with an original project file", [
+    createParagraph(
+      document,
+      "Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD can contain real raster-layer records. The matching importer preserves supported layer data only when those records exist and fit the documented subset. Editor-only effects, unsupported blend modes, groups, vectors, or ambiguous metadata may be rejected rather than silently flattened.",
+    ),
+  ]);
+  const sequenceCard = createCard(document, "Use PNG frames for a known sequence", [
+    createParagraph(
+      document,
+      "A numbered PNG sequence is the most direct choice when every animation frame already exists as a separate image. Matching dimensions are required. The result rebuilds frame order on one flat layer because a PNG does not contain the boundaries, names, or opacity of the editor layers that originally produced it.",
+    ),
+  ]);
+  const sheetCard = createCard(document, "Use grid or atlas data for a sheet", [
+    createParagraph(
+      document,
+      "An evenly divided spritesheet can be sliced by exact rows, columns, frame size, and traversal order. A supported PNG plus JSON atlas can also carry frame rectangles, trim placement, and duration metadata. Both workflows convert frames from a flat image; neither recreates source layers that are absent from the sheet.",
+    ),
+  ]);
+  const animationCard = createCard(document, "Use GIF or APNG for delivered animation", [
+    createParagraph(
+      document,
+      "GIF and APNG importers decode the supported animation stream, including documented timing, transparency, disposal, and compositing behavior. They are useful when the animated image is the best source left, but their output is a flat reconstructed timeline rather than the original editor project.",
+    ),
+  ]);
+  const guideLink = document.createElement("a");
+  guideLink.href = "/guides/";
+  guideLink.textContent = "Compare every supported source format";
+  guideLink.className = "guide-detail-link";
+  projectCard.append(guideLink);
+  sourceCards.className = "card-grid homepage-source-grid";
+  sourceCards.append(projectCard, sequenceCard, sheetCard, animationCard);
+
+  const localHeading = document.createElement("h3");
+  localHeading.textContent = "What happens inside the browser";
+  const localExplanation = createParagraph(
+    document,
+    "After you choose files, browser APIs read their bytes in the current tab. The selected importer validates the format, decodes supported pixels and metadata, and constructs a SpriteProject with canvas size, frames, durations, layers, and positioned cels. The Aseprite writer then serializes that validated model into a downloadable Blob. The conversion path has no upload endpoint, cloud artwork store, or remote image-processing fallback.",
+  );
+  const privacyExplanation = document.createElement("p");
+  const privacyLink = document.createElement("a");
+  privacyLink.href = "/articles/browser-local-conversion/";
+  privacyLink.textContent = "browser-local conversion architecture";
+  privacyExplanation.append(
+    "Ordinary page assets still come from the static host, and external links leave the site only when you follow them. Read the ",
+    privacyLink,
+    " for the exact boundary between local artwork processing and normal web requests.",
+  );
+
+  const workflowHeading = document.createElement("h3");
+  workflowHeading.textContent = "A reliable prepare, convert, and verify workflow";
+  const workflowIntro = createParagraph(
+    document,
+    "Keep the original file unchanged and test with a copy. A short verification pass catches most format mismatches before the converted file becomes part of a production art pipeline.",
+  );
+  const workflow = document.createElement("ol");
+  workflow.className = "homepage-process";
+  for (const itemText of [
+    "Identify the richest source you still have. Prefer a supported project file for layers, atlas metadata for trimmed placement and timing, or separate PNG files for an unambiguous frame sequence.",
+    "Choose the importer that matches the actual file instead of renaming an extension. Review the mode guidance for required companion files and unsupported features.",
+    "Inspect filenames, canvas dimensions, grid fit, frame order, transparency, and timing before converting. Fix inconsistent source data in the original editor when possible.",
+    "Convert once, download the generated .aseprite file, and open it in Aseprite. The browser download is the handoff point; the source is not replaced or edited.",
+    "Compare canvas size, frame count, frame order, durations, transparency, cel positions, layer order, names, visibility, and opacity against the source capabilities.",
+    "If validation fails, keep the exact safe error message and make the smallest synthetic reproduction you can. Troubleshooting is safer than deleting metadata until an invalid file happens to import.",
+  ]) {
+    const item = document.createElement("li");
+    item.textContent = itemText;
+    workflow.append(item);
+  }
+  const troubleshootingLink = document.createElement("a");
+  troubleshootingLink.href = "/troubleshooting/";
+  troubleshootingLink.textContent = "Open symptom-based troubleshooting";
+  troubleshootingLink.className = "guide-detail-link";
+
+  const faqHeading = document.createElement("h3");
+  faqHeading.textContent = "Questions to answer before relying on the output";
+  const faq = document.createElement("div");
+  faq.className = "homepage-faq";
+  faq.append(
+    createHomepageQuestion(
+      document,
+      "Can a flat PNG, spritesheet, GIF, or APNG recover original layers?",
+      "No. Those sources describe rendered pixels and sometimes frames or timing, but they do not contain the missing editor-layer boundaries. The converter can rebuild a timeline from them, not recover data that was flattened away.",
+    ),
+    createHomepageQuestion(
+      document,
+      "Why does a project importer reject some files from a named editor?",
+      "Each importer supports a documented, tested subset rather than every version and editor feature. Rejecting unsupported or ambiguous structures avoids producing a file that looks successful while losing important content without warning.",
+    ),
+    createHomepageQuestion(
+      document,
+      "Is every conversion lossless?",
+      "No blanket lossless claim is made. Supported pixels, timing, placement, and raster-layer properties are converted where the importer documents them, while editor-specific effects, metadata, color modes, or unsupported structures may not transfer.",
+    ),
+    createHomepageQuestion(
+      document,
+      "Which checks matter most after opening the Aseprite file?",
+      "Start with canvas dimensions, frame count and order, frame durations, transparency, and cel placement. For project formats, also verify layer names, order, visibility, opacity, and any documented blend limitations before editing further.",
+    ),
+    createHomepageQuestion(
+      document,
+      "Does conversion upload the selected artwork?",
+      "No. Parsing, image decoding, validation, preview generation, Aseprite serialization, and download occur in the browser tab. The project intentionally has no conversion server or remote fallback for files that exceed local limits.",
+    ),
+  );
+
+  section.id = "homepage-guide";
+  section.className = "panel homepage-guide";
+  section.setAttribute("aria-labelledby", "homepage-guide-heading");
+  heading.id = "homepage-guide-heading";
+  heading.textContent = "A practical guide to rebuilding sprite projects";
+  section.append(
+    heading,
+    introduction,
+    sourceCards,
+    localHeading,
+    localExplanation,
+    privacyExplanation,
+    workflowHeading,
+    workflowIntro,
+    workflow,
+    troubleshootingLink,
+    faqHeading,
+    faq,
+  );
+  return section;
+}
+
 function createFormatMatrix(document: Document): HTMLElement {
   const wrapper = document.createElement("div");
   const table = document.createElement("table");

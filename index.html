@@ -159,13 +159,58 @@
         padding-left: 1.5rem;
       }
 
+      a {
+        color: #9ddfb9;
+      }
+
+      .fallback-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        margin: 1rem 0 1.5rem;
+      }
+
+      .content-card,
+      .fallback-faq details {
+        padding: 1rem;
+        border: 1px solid #34404d;
+        border-radius: 0.75rem;
+        background: #10171d;
+      }
+
+      .content-card p,
+      .fallback-faq p {
+        margin-bottom: 0;
+        color: #cbd8e6;
+      }
+
+      .fallback-process li + li {
+        margin-top: 0.7rem;
+      }
+
+      .fallback-faq {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .fallback-faq summary {
+        cursor: pointer;
+        color: #f4f8fb;
+        font-weight: 700;
+      }
+
+      .fallback-faq details[open] summary {
+        margin-bottom: 0.65rem;
+      }
+
       @media (max-width: 44rem) {
         #app {
           padding: 1rem;
         }
 
         .grid-options,
-        .workspace {
+        .workspace,
+        .fallback-grid {
           grid-template-columns: 1fr;
         }
       }
@@ -187,6 +232,69 @@
         <p><a href="/guides/">Choose the right input format</a>, read how <a href="/articles/browser-local-conversion/">browser-local conversion works</a>, or open <a href="/troubleshooting/">troubleshooting</a>. The interactive converter loads when JavaScript is available.</p>
         <p><a href="/about/">About</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
       </header>
+      <section class="panel" aria-labelledby="fallback-guide-heading">
+        <h2 id="fallback-guide-heading">A practical guide to rebuilding sprite projects</h2>
+        <p>A useful conversion starts with the structure that remains in the source file. This converter does more than rename an extension: it validates supported pixels and metadata, rebuilds a common sprite project model, and writes a new Aseprite file. The source format determines whether the result can contain a flat timeline or supported raster layers.</p>
+
+        <div class="fallback-grid">
+          <article class="content-card">
+            <h3>Start with an original project file</h3>
+            <p>Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD can contain real raster-layer records. The matching importer preserves supported layer data only when those records exist and fit the documented subset. Editor-only effects, unsupported blend modes, groups, vectors, or ambiguous metadata may be rejected rather than silently flattened.</p>
+          </article>
+          <article class="content-card">
+            <h3>Use PNG frames for a known sequence</h3>
+            <p>A numbered PNG sequence is the most direct choice when every animation frame already exists as a separate image. Matching dimensions are required. The result rebuilds frame order on one flat layer because a PNG does not contain the boundaries, names, or opacity of the editor layers that originally produced it.</p>
+          </article>
+          <article class="content-card">
+            <h3>Use grid or atlas data for a sheet</h3>
+            <p>An evenly divided spritesheet can be sliced by exact rows, columns, frame size, and traversal order. A supported PNG plus JSON atlas can also carry frame rectangles, trim placement, and duration metadata. Both workflows convert frames from a flat image; neither recreates source layers absent from the sheet.</p>
+          </article>
+          <article class="content-card">
+            <h3>Use GIF or APNG for delivered animation</h3>
+            <p>GIF and APNG importers decode the supported animation stream, including documented timing, transparency, disposal, and compositing behavior. They are useful when the animated image is the best source left, but their output is a flat reconstructed timeline rather than the original editor project.</p>
+          </article>
+        </div>
+        <p><a href="/guides/">Compare every supported source format</a> before choosing a mode.</p>
+
+        <h3>What happens inside the browser</h3>
+        <p>After you choose files, browser APIs read their bytes in the current tab. The selected importer validates the format, decodes supported pixels and metadata, and constructs a SpriteProject with canvas size, frames, durations, layers, and positioned cels. The Aseprite writer serializes that validated model into a downloadable file. The conversion path has no upload endpoint, cloud artwork store, or remote image-processing fallback.</p>
+        <p>Ordinary HTML, CSS, JavaScript, and image assets still come from the static host. External destinations receive a request only when you choose to follow their links. The <a href="/articles/browser-local-conversion/">browser-local conversion architecture</a> explains this boundary from file selection through download, while the <a href="/privacy/">Privacy Policy</a> describes hosting and optional external services.</p>
+
+        <h3>A reliable prepare, convert, and verify workflow</h3>
+        <p>Keep the original file unchanged and test with a copy. A short verification pass catches most format mismatches before the converted file becomes part of a production art pipeline.</p>
+        <ol class="fallback-process">
+          <li>Identify the richest source you still have. Prefer a supported project file for layers, atlas metadata for trimmed placement and timing, or separate PNG files for an unambiguous frame sequence.</li>
+          <li>Choose the importer that matches the actual file instead of renaming an extension. Review the mode guidance for required companion files and unsupported features.</li>
+          <li>Inspect filenames, canvas dimensions, grid fit, frame order, transparency, and timing before converting. Fix inconsistent source data in the original editor when possible.</li>
+          <li>Convert once, download the generated <code>.aseprite</code> file, and open it in Aseprite. The browser download is the handoff point; the source is not replaced or edited.</li>
+          <li>Compare canvas size, frame count, frame order, durations, transparency, cel positions, layer order, names, visibility, and opacity against the source capabilities.</li>
+          <li>If validation fails, keep the exact safe error message and make the smallest synthetic reproduction you can. Use <a href="/troubleshooting/">symptom-based troubleshooting</a> instead of deleting metadata until an invalid file happens to import.</li>
+        </ol>
+
+        <h3>Questions to answer before relying on the output</h3>
+        <div class="fallback-faq">
+          <details open>
+            <summary>Can a flat PNG, spritesheet, GIF, or APNG recover original layers?</summary>
+            <p>No. Those sources describe rendered pixels and sometimes frames or timing, but they do not contain missing editor-layer boundaries. The converter can rebuild a timeline from them, not recover data that was flattened away.</p>
+          </details>
+          <details>
+            <summary>Why does a project importer reject some files from a named editor?</summary>
+            <p>Each importer supports a documented, tested subset rather than every version and editor feature. Rejecting unsupported or ambiguous structures avoids producing a file that looks successful while losing important content without warning.</p>
+          </details>
+          <details>
+            <summary>Is every conversion lossless?</summary>
+            <p>No blanket lossless claim is made. Supported pixels, timing, placement, and raster-layer properties are converted where the importer documents them, while editor-specific effects, metadata, color modes, or unsupported structures may not transfer.</p>
+          </details>
+          <details>
+            <summary>Which checks matter most after opening the Aseprite file?</summary>
+            <p>Start with canvas dimensions, frame count and order, frame durations, transparency, and cel placement. For project formats, also verify layer names, order, visibility, opacity, and documented blend limitations before editing further.</p>
+          </details>
+          <details>
+            <summary>Does conversion upload the selected artwork?</summary>
+            <p>No. Parsing, image decoding, validation, preview generation, Aseprite serialization, and download occur in the browser tab. The project intentionally has no conversion server or remote fallback for files that exceed local limits.</p>
+          </details>
+        </div>
+      </section>
     </main>
     <script>
       const legacyRoutes = {

@@ -55,6 +55,7 @@ import {
 import { mountPreviewTimelineUi } from "./previewTimeline";
 import {
   createHomepageOverview,
+  createHomepageGuide,
   createModeDecisionHelper,
   createSiteNavigationLinks,
 } from "./siteContent";
@@ -1158,6 +1159,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const exportContainer = document.createElement("div");
   const supportSection = createSupportSection(document, DEFAULT_SUPPORT_LINKS);
   const homepageOverview = createHomepageOverview(document);
+  const homepageGuide = createHomepageGuide(document);
   const footer = createSupportFooter(document);
   workspace.className = "workspace result-workspace";
   workspace.hidden = true;
@@ -1187,6 +1189,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     converterSection,
     modeDecisionHelper,
     homepageOverview,
+    homepageGuide,
     supportSection,
     footer,
   );
