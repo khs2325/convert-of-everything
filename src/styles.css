@@ -199,6 +199,24 @@ a:focus-visible {
   margin-bottom: 0;
 }
 
+.source-action-column {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.source-action-column .workflow-panel-convert {
+  grid-template-columns: 1fr;
+  margin-top: 0;
+}
+
+.source-action-column .workflow-panel-convert > h3:first-child,
+.source-action-column .workflow-panel-convert > .conversion-progress,
+.source-action-column .workflow-panel-convert > [role="alert"],
+.source-action-column .workflow-panel-convert > .download-area {
+  grid-column: auto;
+}
+
 .workflow-panel {
   margin-bottom: 1rem;
   border-color: #344758;
@@ -1312,43 +1330,6 @@ td {
   transition: transform 100ms linear;
 }
 
-.format-route-hub {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 20;
-  display: grid;
-  place-items: center;
-  width: clamp(4.6rem, 11vw, 5.8rem);
-  aspect-ratio: 1;
-  padding: 0.65rem;
-  border: 1px solid rgba(152, 232, 222, 0.52);
-  border-radius: 50%;
-  color: var(--text);
-  text-align: center;
-  background: rgba(32, 21, 60, 0.88);
-  box-shadow: 0 0 0 0.6rem rgba(69, 169, 169, 0.06), 0 1rem 3rem rgba(0, 0, 0, 0.3);
-  transform: translate(-50%, -50%);
-  backdrop-filter: blur(10px);
-  pointer-events: none;
-}
-
-.format-route-hub span {
-  color: var(--teal);
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.format-route-hub strong {
-  font-size: clamp(0.76rem, 1.6vw, 0.95rem);
-}
-
-.format-route-hub small {
-  color: var(--muted);
-  font-size: 0.58rem;
-}
-
 .format-route-line {
   position: absolute;
   z-index: 19;
@@ -1462,10 +1443,6 @@ td {
   background: rgba(62, 62, 117, 0.92);
   box-shadow: none;
   animation: none;
-}
-
-.format-route-node.is-back {
-  pointer-events: none;
 }
 
 .format-route-node.is-back .format-file-icon::after,
@@ -1600,10 +1577,6 @@ td {
 
   .format-route-node-label {
     font-size: 0.58rem;
-  }
-
-  .format-route-hub {
-    width: 5.5rem;
   }
 
   .format-route-readout {

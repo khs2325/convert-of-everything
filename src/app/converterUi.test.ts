@@ -620,6 +620,9 @@ describe("mountConverterUi Pixil selection", () => {
     const workflowGrid = findOne(root, (element) =>
       element.className.split(/\s+/).includes("converter-source-grid"),
     );
+    const sourceActionColumn = findOne(root, (element) =>
+      element.className.split(/\s+/).includes("source-action-column"),
+    );
     const results = findOne(root, (element) =>
       element.className.split(/\s+/).includes("result-workspace"),
     );
@@ -629,12 +632,17 @@ describe("mountConverterUi Pixil selection", () => {
     );
     expect(workflowGrid.children.map((element) => element.className)).toEqual([
       expect.stringContaining("format-route-container"),
+      expect.stringContaining("source-action-column"),
+    ]);
+    expect(sourceActionColumn.children.map((element) => element.className)).toEqual([
       expect.stringContaining("workflow-panel-files"),
+      expect.stringContaining("workflow-panel-convert"),
     ]);
     expect(getText(converter)).toContain("Step 1 · Draw a conversion route");
     expect(getText(converter)).not.toContain("Refine source settings");
     expect(getText(converter)).toContain("2. Add source files");
     expect(getText(converter)).toContain("3. Convert and download");
+    expect(getText(converter)).not.toContain("FORMAT SURFACE");
     expect(results.hidden).toBe(true);
     expect(getText(root)).toContain("Runs in your browser");
     expect(getText(root)).toContain("No artwork uploads");
@@ -720,6 +728,29 @@ describe("mountConverterUi Pixil selection", () => {
     expect(modeSelect.value).toBe("psd");
     expect(getText(root)).toContain("Photoshop to Aseprite is selected");
     expect(getText(root)).toContain("Convert PSD project → Aseprite");
+  });
+
+  it("allows a compact back-side file icon to be selected directly", () => {
+    vi.stubGlobal("HTMLImageElement", class HTMLImageElementStub {});
+    const document = new UiDocumentStub();
+    const root = document.createElement("main");
+    mountConverterUi(root as unknown as HTMLElement);
+    const modeSelect = findOne(root, (element) => element.id === "source-import-mode");
+    const pixilNode = findOne(
+      root,
+      (element) => element.getAttribute("data-route-node") === "pixil",
+    );
+    const asepriteNode = findOne(
+      root,
+      (element) => element.getAttribute("data-route-node") === "aseprite",
+    );
+
+    expect(pixilNode.getAttribute("data-surface-side")).toBe("back");
+    pixilNode.click();
+    asepriteNode.click();
+
+    expect(modeSelect.value).toBe("pixil");
+    expect(getText(root)).toContain("Pixilart to Aseprite is selected");
   });
 
   it("shows Pixil cards and keeps remove and clear behavior in sync", async () => {
