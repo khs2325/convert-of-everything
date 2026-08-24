@@ -4,6 +4,7 @@ import {
   advanceFormatRouteSelection,
   FORMAT_ROUTE_NODES,
   getFormatRoute,
+  projectFormatSurfacePoint,
   type FormatRouteSelection,
 } from "./formatRouteMap";
 
@@ -52,5 +53,28 @@ describe("format route selection", () => {
       source: { sourceMode: "png-sequence" },
       target: { outputFormat: "aseprite" },
     });
+  });
+
+  it("projects every format onto the visible bounds of the globe surface", () => {
+    for (const item of FORMAT_ROUTE_NODES) {
+      const point = projectFormatSurfacePoint(item.position, 22, -47);
+      expect(point.leftPercent).toBeGreaterThanOrEqual(15);
+      expect(point.leftPercent).toBeLessThanOrEqual(85);
+      expect(point.topPercent).toBeGreaterThanOrEqual(15);
+      expect(point.topPercent).toBeLessThanOrEqual(85);
+      expect(point.depth).toBeGreaterThanOrEqual(-1);
+      expect(point.depth).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("moves a surface format from the front to the compact back side when rotated", () => {
+    const front = projectFormatSurfacePoint(1, 0, 0);
+    const back = projectFormatSurfacePoint(1, 0, 180);
+
+    expect(front.isBack).toBe(false);
+    expect(front.depth).toBeGreaterThan(0);
+    expect(back.isBack).toBe(true);
+    expect(back.depth).toBeLessThan(0);
+    expect(back.scale).toBeLessThan(front.scale);
   });
 });
