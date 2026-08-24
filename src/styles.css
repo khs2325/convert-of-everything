@@ -1332,11 +1332,21 @@ td {
 
 .format-route-line {
   position: absolute;
-  z-index: 19;
-  height: 3px;
+  z-index: 23;
+  height: 5px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--mint), #fff, var(--teal));
-  box-shadow: 0 0 0.85rem var(--mint);
+  background: linear-gradient(
+    90deg,
+    transparent 0 18%,
+    var(--mint) 28%,
+    #fff 50%,
+    var(--teal) 72%,
+    transparent 82% 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(22, 12, 35, 0.72),
+    0 0 0.75rem rgba(255, 255, 255, 0.9),
+    0 0 1.6rem var(--mint);
   transform-origin: left center;
   pointer-events: none;
 }
@@ -1344,7 +1354,7 @@ td {
 .format-route-line::after {
   position: absolute;
   top: 50%;
-  right: -0.1rem;
+  right: 16%;
   width: 0;
   height: 0;
   border-top: 0.42rem solid transparent;
@@ -1420,6 +1430,25 @@ td {
   content: "";
 }
 
+.format-file-icon.has-official-logo {
+  overflow: hidden;
+  padding: 0.2rem;
+  border-color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.format-file-icon.has-official-logo::after {
+  display: none;
+}
+
+.format-file-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0.12rem 0.18rem rgba(22, 12, 35, 0.32));
+}
+
 .format-file-icon span {
   max-width: 2rem;
   overflow: hidden;
@@ -1454,18 +1483,44 @@ td {
   font-size: 0.52rem;
 }
 
+.format-route-node.is-back:is(.is-source, .is-target) .format-file-icon {
+  width: 2.2rem;
+  height: 2.65rem;
+  border-radius: 0.45rem;
+}
+
+.format-route-node.is-back:is(.is-source, .is-target) .format-route-node-label {
+  display: block;
+}
+
+.format-route-node.is-source,
+.format-route-node.is-target {
+  border: 2px solid #fff;
+  background: rgba(22, 12, 35, 0.88);
+  outline: 0.2rem solid rgba(255, 255, 255, 0.28);
+  animation: selected-format-pulse 1.7s ease-in-out infinite;
+}
+
 .format-route-node.is-source .format-file-icon {
-  border-color: #fff;
+  border: 3px solid #fff;
   color: var(--plum);
   background: var(--mint);
-  box-shadow: 0 0 0 0.28rem rgba(152, 232, 222, 0.17), 0 0 1.5rem rgba(152, 232, 222, 0.45);
+  box-shadow:
+    0 0 0 0.35rem rgba(152, 232, 222, 0.36),
+    0 0 2.4rem 0.5rem rgba(152, 232, 222, 0.85);
 }
 
 .format-route-node.is-target .format-file-icon {
-  border-color: #fff;
+  border: 3px solid #fff;
   color: #fff;
   background: var(--teal);
-  box-shadow: 0 0 0 0.28rem rgba(69, 169, 169, 0.2), 0 0 1.5rem rgba(69, 169, 169, 0.55);
+  box-shadow:
+    0 0 0 0.35rem rgba(69, 169, 169, 0.44),
+    0 0 2.4rem 0.5rem rgba(69, 169, 169, 0.9);
+}
+
+.format-route-node:is(.is-source, .is-target) .format-file-icon.has-official-logo {
+  background: #fff;
 }
 
 .format-route-node.is-source .format-route-node-label,
@@ -1536,6 +1591,15 @@ td {
   50% { box-shadow: 0 0 0 0.42rem rgba(152, 232, 222, 0.05); }
 }
 
+@keyframes selected-format-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0.12rem rgba(255, 255, 255, 0.18), 0 0 1.2rem rgba(152, 232, 222, 0.42);
+  }
+  50% {
+    box-shadow: 0 0 0 0.3rem rgba(255, 255, 255, 0.28), 0 0 2.2rem rgba(152, 232, 222, 0.82);
+  }
+}
+
 @media (max-width: 44rem) {
   .format-route-header {
     grid-template-columns: 1fr;
@@ -1593,6 +1657,8 @@ td {
   .format-route-node,
   .format-route-globe-grid,
   .format-file-icon,
+  .format-route-node.is-source,
+  .format-route-node.is-target,
   .format-route-node.is-target-ready .format-file-icon {
     animation: none;
     transition: none;

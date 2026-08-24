@@ -4,6 +4,7 @@ import type { OutputFormat } from "./exportDownload";
 export type FormatRouteNode = {
   id: string;
   abbreviation: string;
+  iconSrc?: string;
   label: string;
   position: number;
   sourceMode?: FileImportFormat;
@@ -47,18 +48,18 @@ export type FormatRouteMapOptions = {
 };
 
 export const FORMAT_ROUTE_NODES: readonly FormatRouteNode[] = [
-  { id: "png-sequence", abbreviation: "PNG", label: "PNG frames", position: 1, sourceMode: "png-sequence", outputFormat: "png-sequence" },
+  { id: "png-sequence", abbreviation: "PNG", iconSrc: "/format-icons/png.png", label: "PNG frames", position: 1, sourceMode: "png-sequence", outputFormat: "png-sequence" },
   { id: "spritesheet", abbreviation: "SHEET", label: "Sprite sheet", position: 2, sourceMode: "spritesheet-grid", outputFormat: "spritesheet" },
-  { id: "atlas-json", abbreviation: "JSON", label: "Atlas JSON", position: 3, sourceMode: "spritesheet-json" },
+  { id: "atlas-json", abbreviation: "JSON", iconSrc: "/format-icons/json.gif", label: "Atlas JSON", position: 3, sourceMode: "spritesheet-json" },
   { id: "gif", abbreviation: "GIF", label: "GIF", position: 4, sourceMode: "gif" },
   { id: "apng", abbreviation: "APNG", label: "APNG", position: 5, sourceMode: "apng" },
-  { id: "piskel", abbreviation: "PISKEL", label: "Piskel", position: 6, sourceMode: "piskel" },
-  { id: "pixil", abbreviation: "PIXIL", label: "Pixilart", position: 7, sourceMode: "pixil" },
+  { id: "piskel", abbreviation: "PISKEL", iconSrc: "/format-icons/piskel.png", label: "Piskel", position: 6, sourceMode: "piskel" },
+  { id: "pixil", abbreviation: "PIXIL", iconSrc: "/format-icons/pixilart.ico", label: "Pixilart", position: 7, sourceMode: "pixil" },
   { id: "openraster", abbreviation: "ORA", label: "OpenRaster", position: 8, sourceMode: "openraster" },
-  { id: "pixelorama", abbreviation: "PXO", label: "Pixelorama", position: 9, sourceMode: "pixelorama" },
-  { id: "krita", abbreviation: "KRA", label: "Krita", position: 10, sourceMode: "krita" },
+  { id: "pixelorama", abbreviation: "PXO", iconSrc: "/format-icons/pixelorama.png", label: "Pixelorama", position: 9, sourceMode: "pixelorama" },
+  { id: "krita", abbreviation: "KRA", iconSrc: "/format-icons/krita.ico", label: "Krita", position: 10, sourceMode: "krita" },
   { id: "psd", abbreviation: "PSD", label: "Photoshop", position: 11, sourceMode: "psd" },
-  { id: "aseprite", abbreviation: "ASE", label: "Aseprite", position: 12, sourceMode: "aseprite", outputFormat: "aseprite" },
+  { id: "aseprite", abbreviation: "ASE", iconSrc: "/format-icons/aseprite.png", label: "Aseprite", position: 12, sourceMode: "aseprite", outputFormat: "aseprite" },
 ] as const;
 
 const FORMAT_LATITUDES = [18, -24, 4, 32, -8, 20, -34, 2, 35, -18, -36, 0] as const;
@@ -269,10 +270,19 @@ export function mountFormatRouteMap(
     button.setAttribute("aria-label", `${node.label} file format`);
     icon.className = "format-file-icon";
     icon.setAttribute("aria-hidden", "true");
-    abbreviation.textContent = node.abbreviation;
+    if (node.iconSrc !== undefined) {
+      const image = document.createElement("img");
+      image.className = "format-file-logo";
+      image.src = node.iconSrc;
+      image.alt = "";
+      icon.className += " has-official-logo";
+      icon.append(image);
+    } else {
+      abbreviation.textContent = node.abbreviation;
+      icon.append(abbreviation);
+    }
     label.className = "format-route-node-label";
     label.textContent = node.label;
-    icon.append(abbreviation);
     button.append(icon, label);
     nodeButtons.set(node.id, button);
     map.append(button);
@@ -339,8 +349,6 @@ export function mountFormatRouteMap(
     if (
       sourceButton === undefined ||
       targetButton === undefined ||
-      sourceButton.getAttribute("data-surface-side") === "back" ||
-      targetButton.getAttribute("data-surface-side") === "back" ||
       typeof map.getBoundingClientRect !== "function" ||
       typeof sourceButton.getBoundingClientRect !== "function"
     ) {
@@ -372,16 +380,23 @@ export function mountFormatRouteMap(
     for (const node of FORMAT_ROUTE_NODES) {
       const button = nodeButtons.get(node.id)!;
       const point = projectFormatSurfacePoint(node.position, rotationX, rotationY);
+      const isSelected = hasClass(button, "is-source") || hasClass(button, "is-target");
       button.style.left = `${point.leftPercent}%`;
       button.style.top = `${point.topPercent}%`;
       button.style.zIndex = String(
-        point.isBack
+        isSelected
+          ? 22
+          : point.isBack
           ? 2 + Math.round((point.depth + 1) * 3)
           : 10 + Math.round(point.depth * 8),
       );
       const surfaceOpacity = point.isBack ? 0.42 : 0.78 + (point.depth + 1) * 0.11;
       button.style.opacity = String(
-        hasClass(button, "is-muted") ? surfaceOpacity * 0.38 : surfaceOpacity,
+        isSelected
+          ? 1
+          : hasClass(button, "is-muted")
+            ? surfaceOpacity * 0.38
+            : surfaceOpacity,
       );
       button.style.transform = `translate(-50%, -50%) scale(${point.scale})`;
       toggleClass(button, "is-back", point.isBack);
