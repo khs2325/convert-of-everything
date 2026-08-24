@@ -164,6 +164,12 @@ export function advanceFormatRouteSelection(
   selection: FormatRouteSelection,
   node: FormatRouteNode,
 ): FormatRouteSelection {
+  if (selection.sourceId === node.id) {
+    return { sourceId: null, targetId: null };
+  }
+  if (selection.targetId === node.id) {
+    return { sourceId: selection.sourceId, targetId: null };
+  }
   if (selection.sourceId === null || selection.targetId !== null) {
     return node.sourceMode === undefined
       ? selection
