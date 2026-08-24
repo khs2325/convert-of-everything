@@ -29,6 +29,24 @@ describe("format route selection", () => {
     });
   });
 
+  it("deselects a selected source when it is clicked again", () => {
+    expect(advanceFormatRouteSelection(
+      { sourceId: "png-sequence", targetId: "aseprite" },
+      node("png-sequence"),
+    )).toEqual({ sourceId: null, targetId: null });
+    expect(advanceFormatRouteSelection(
+      { sourceId: "gif", targetId: null },
+      node("gif"),
+    )).toEqual({ sourceId: null, targetId: null });
+  });
+
+  it("deselects only the selected target when it is clicked again", () => {
+    expect(advanceFormatRouteSelection(
+      { sourceId: "png-sequence", targetId: "aseprite" },
+      node("aseprite"),
+    )).toEqual({ sourceId: "png-sequence", targetId: null });
+  });
+
   it("completes the route only with an implemented output node", () => {
     const sourceSelected: FormatRouteSelection = {
       sourceId: "gif",
