@@ -1247,6 +1247,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   footerNavigation.setAttribute("aria-label", "Footer links");
   footerNavigation.append(...createSiteNavigationLinks(document));
   for (const [href, label] of [
+    ["/about/#contact", "Contact"],
     ["/privacy/", "Privacy"],
     ["/terms/", "Terms"],
   ] as const) {

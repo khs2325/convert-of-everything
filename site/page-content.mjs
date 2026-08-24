@@ -355,9 +355,10 @@ SpriteProject layer Color: cel(frame 0), cel(frame 1)</div>
     <div class="card-grid">
       <a class="link-card" href="/articles/aseprite-frames-layers-cels/"><strong>Frames, layers, and cels</strong><span>See how the canonical SpriteProject model represents canvas, time, stack order, positions, opacity, and RGBA data.</span></a>
       <a class="link-card" href="/articles/browser-local-conversion/"><strong>Browser-local conversion pipeline</strong><span>Follow selected files through local parsing, validation, preview, binary export, and a browser-generated download.</span></a>
+      <a class="link-card" href="/articles/verify-sprite-conversion/"><strong>Verify a conversion</strong><span>Use a repeatable acceptance test for canvas, frames, timing, transparency, layers, cels, and downloaded output.</span></a>
     </div>
-    <h2>Why these two topics belong together</h2>
-    <p>Privacy and compatibility share one architectural boundary: every importer must turn its source into the same <code>SpriteProject</code> without sending artwork away. Once that model is valid, the Aseprite writer no longer needs to know whether pixels came from PNG, GIF, a ZIP-based project, or PSD channels.</p>
+    <h2>Why these topics belong together</h2>
+    <p>Privacy, compatibility, and verification share one architectural boundary: every importer must turn its source into the same <code>SpriteProject</code> without sending artwork away. Once that model is valid, the Aseprite writer no longer needs to know whether pixels came from PNG, GIF, a ZIP-based project, or PSD channels. A useful acceptance test then checks the same normalized facts regardless of source format.</p>
     <p>The model also explains why flat images cannot yield layers. A rendered PNG supplies one pixel result; it does not supply the missing relationships between logical layers and cels. Read the data-model article first when a preservation claim is unclear, and the browser article when a network or memory question is unclear.</p>
     <h2>Apply the model to a real conversion</h2>
     <p>Open the <a href="/compatibility-lab/">compatibility lab</a> to download the exact synthetic PNG, atlas, project, GIF, and APNG inputs used by the test suite. Each experiment records observed canvas, frame, timing, and layer values and links back to its public generator and assertions.</p>
@@ -452,6 +453,40 @@ browser download</div>
     <h2>How to verify the boundary yourself</h2>
     <ol><li>Load the production page and allow its static assets to finish.</li><li>Open the browser Network panel and clear the request list.</li><li>Convert a tiny synthetic PNG sequence or project fixture that contains no private work.</li><li>Confirm no new request body or URL contains the source file, its embedded metadata, or the generated output.</li><li>Remember that clicking an external link or enabling future third-party scripts changes the set of requests and should be reviewed separately.</li></ol>
     <p>For the representation created in the middle of this pipeline, see <a href="/articles/aseprite-frames-layers-cels/">the SpriteProject data-model article</a>. The full policy is at <a href="/privacy/">Privacy</a>.</p>
+  `,
+
+  "/articles/verify-sprite-conversion/": `
+    <p>A downloaded file is not proof that a conversion is correct. A useful verification process compares the source facts that still exist, the normalized preview, and the final output. This article turns that comparison into a small acceptance test you can repeat before relying on a converted sprite.</p>
+
+    <h2>Begin with a written source inventory</h2>
+    <p>Before converting, record the source canvas size, expected frame count, frame order, known timing, transparency, and any editor structure you expect to remain editable. For a structured project, also record visible layer names, order, opacity, and whether any cel is smaller than the full canvas or positioned away from <code>(0, 0)</code>. This inventory prevents a visually plausible result from hiding a structural loss.</p>
+    <p>Only record information the source actually contains. A PNG sequence can establish pixels, dimensions, and order supplied by the selected files, but it cannot establish an original layer stack. A GIF can establish decoded rendered frames and timing, but it cannot reveal the editor objects used before the GIF was exported. A project format may contain layers, yet the importer still needs explicit support for their types and properties.</p>
+
+    <h2>Use a small diagnostic source first</h2>
+    <p>A tiny diagnostic file makes wrong results obvious. Use an asymmetric mark near one edge, at least one transparent pixel, two visibly different frames, and distinct delays when the format supports timing. For a layered source, put a recognizable mark on each raster layer and use different names or opacity values. Avoid confidential artwork; a new synthetic sprite is easier to share if a bug needs investigation.</p>
+    <p>The <a href="/compatibility-lab/">compatibility lab</a> publishes deterministic examples for PNG sequence, spritesheet metadata, Piskel, Pixilart, Pixelorama, OpenRaster, Krita, PSD, GIF, and APNG. Those files are useful baselines because the page records the observed dimensions, frame counts, timing, layers, and intentional rejection boundaries.</p>
+
+    <h2>Check the normalized project before download</h2>
+    <p>The in-page preview reads the same <code>SpriteProject</code> that the exporters consume. Inspect it before creating output:</p>
+    <ol class="steps"><li>Confirm the canvas width and height match the intended coordinate space.</li><li>Step through every frame and compare its order and visible pixels.</li><li>Check each displayed duration, especially where source delays differ.</li><li>Look at transparent edges and partially occupied cels for unexpected backgrounds or clipping.</li><li>For supported layered inputs, compare layer names, order, visibility, opacity, and cel placement.</li><li>Stop if a required property is absent; changing the output format cannot recreate information the importer did not receive.</li></ol>
+    <p>If the preview is already wrong, downloading again is not a useful test. Return to the source-mode guide, verify that the chosen importer matches the file, and read the exact validation message. The converter rejects many ambiguous structures intentionally rather than guessing.</p>
+
+    <h2>Open and inspect the exported result</h2>
+    <p>For Aseprite output, open the downloaded file in Aseprite and repeat the inventory check. Confirm document dimensions, timeline length, duration per frame, visible animation, layer stack, cel positions, opacity, and transparency. Toggle supported layers individually. Edit one cel and confirm the change does not unexpectedly affect another frame or layer.</p>
+    <p>For PNG sequence output, verify the file count and filename order, then compare every flattened frame. For spritesheet output, verify the sheet dimensions, frame rectangles, durations, trimming fields, and JSON-to-PNG pairing. A valid JSON file with the wrong companion image is still the wrong result.</p>
+
+    <h2>Separate visual equivalence from editability</h2>
+    <p>Two images can look identical while having different editable structure. A flattened frame can reproduce the visible composite but cannot let you hide the original ink layer, rename a source layer, or edit one cel independently. Conversely, a layered result can preserve supported structure while unsupported blend behavior changes the appearance; the conservative importers reject known incompatible cases instead of labeling them preserved.</p>
+    <p>Use two acceptance statements rather than one vague “looks correct” result:</p>
+    <ul><li><strong>Rendered-frame check:</strong> the expected visible pixels, transparency, order, and timing match for the tested frames.</li><li><strong>Editable-structure check:</strong> the supported source layers, properties, and cel relationships remain separately editable where the source contained them.</li></ul>
+
+    <h2>Test boundaries as well as success</h2>
+    <p>A trustworthy converter should fail clearly outside its supported subset. Keep the good diagnostic file, then change one condition at a time: make one PNG dimension differ, use an invalid grid size, move an atlas rectangle beyond the image, or introduce an unsupported project layer type in a disposable copy. The expected result is a specific rejection, not a partial download with silently missing data.</p>
+    <p>Do not corrupt private work to perform this test. Repository fixtures are synthetic and the public lab links to the exact generator and assertions used for maintained compatibility claims. They give you a reproducible boundary without risking an original project.</p>
+
+    <h2>Record enough detail to reproduce a defect</h2>
+    <p>When a check fails, record the input mode, output format, browser, operating system, Aseprite version, safe error text, canvas dimensions, frame count, layer count, and the first frame where actual behavior differs. Reduce the source to the smallest newly created file that still demonstrates the problem. Never publish private artwork merely to prove that a conversion failed.</p>
+    <p>Use <a href="/troubleshooting/">symptom-based troubleshooting</a> for immediate causes, then consult the matching <a href="/guides/">format guide</a> for its accepted subset. For the meaning of frames, layers, and cels, return to <a href="/articles/aseprite-frames-layers-cels/">the data-model explanation</a>.</p>
   `,
 
   "/troubleshooting/": `
@@ -550,7 +585,9 @@ browser download</div>
 
     <h2>Advertising</h2>
     <p>Public pages currently contain Google AdSense account-verification metadata. The repository does not currently load a live AdSense script or display ad units. If advertising is activated later, this policy and the deployed behavior should be reviewed together before launch.</p>
+    <p>If Google advertising is enabled, the browser may share information such as the visited page URL, IP address, and device or browser information with Google, and Google may set or read cookies for delivery, measurement, fraud prevention, and—where permitted—personalization. Google explains this processing in <a href="https://policies.google.com/technologies/partner-sites">How Google uses information from sites or apps that use its services</a>.</p>
     <p>Third-party advertising vendors, including Google, may use cookies to serve ads if their advertising services are enabled. Google may use advertising cookies to serve ads based on prior visits to this or other sites. Users can manage personalized advertising through <a href="https://adssettings.google.com/">Google Ads Settings</a>. These statements describe possible future advertising behavior; they do not state that live ads or advertising cookies are currently active.</p>
+    <p>Before sending AdSense ad requests for visitors in the European Economic Area, the United Kingdom, or Switzerland, the maintainer must configure a Google-certified consent management platform and provide the required choices. No consent banner is shown now because this deployment does not make AdSense ad requests.</p>
 
     <h2>Analytics, error reporting, and payments</h2>
     <p>The current repository does not add an analytics service, remote error-reporting script, conversion telemetry, or direct payment processing. External hosting and support providers may operate their own systems when their pages are requested. No secret payment information should be entered into this static converter page.</p>

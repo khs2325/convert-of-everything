@@ -27,6 +27,43 @@ function breadcrumb(page) {
   return `<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Converter</a><span aria-hidden="true">/</span><a href="${parentHref}">${parentLabel}</a></nav>`;
 }
 
+function structuredData(page, canonical) {
+  const type = page.kind === "article"
+    ? "TechArticle"
+    : page.kind === "guide"
+      ? "Article"
+      : page.kind === "converter"
+        ? "WebApplication"
+        : "WebPage";
+  const data = {
+    "@context": "https://schema.org",
+    "@type": type,
+    name: page.title,
+    headline: page.h1 ?? page.title,
+    description: page.description,
+    url: canonical,
+    inLanguage: "en",
+    dateModified: page.lastModified,
+    author: {
+      "@type": "Person",
+      name: "khs2325",
+      url: "https://github.com/khs2325",
+    },
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Convert of Everything",
+      url: `${ORIGIN}/`,
+    },
+    ...(page.kind === "converter" ? {
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "Any modern browser",
+      browserRequirements: "JavaScript and browser file APIs",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    } : {}),
+  };
+  return JSON.stringify(data).replaceAll("<", "\\u003c");
+}
+
 export function renderPage(page, content) {
   const canonical = `${ORIGIN}${page.route}`;
   return `<!doctype html>
@@ -36,6 +73,8 @@ export function renderPage(page, content) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${escapeHtml(page.title)}</title>
     <meta name="description" content="${escapeHtml(page.description)}">
+    <meta name="author" content="khs2325">
+    <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="google-adsense-account" content="ca-pub-7611560030784765">
     <link rel="canonical" href="${canonical}">
     <meta property="og:type" content="website">
@@ -51,6 +90,7 @@ export function renderPage(page, content) {
     <meta name="twitter:title" content="${escapeHtml(page.title)}">
     <meta name="twitter:description" content="${escapeHtml(page.description)}">
     <meta name="twitter:image" content="${ORIGIN}/og.png">
+    <script type="application/ld+json">${structuredData(page, canonical)}</script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/content.css">
   </head>
@@ -74,7 +114,7 @@ export function renderPage(page, content) {
     </main>
     <footer class="page-footer">
       <p>Independent open-source project · MIT licensed · Not affiliated with Aseprite.</p>
-      <nav aria-label="Policy links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/khs2325/convert-of-everything/issues">Contact</a><a href="https://github.com/khs2325/convert-of-everything">Source &amp; tests</a></nav>
+      <nav aria-label="Policy links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/about/#contact">Contact</a><a href="https://github.com/khs2325/convert-of-everything">Source &amp; tests</a></nav>
     </footer>
   </body>
 </html>`;

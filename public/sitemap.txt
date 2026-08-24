@@ -11,6 +11,7 @@ https://sprite-to-aseprite.pages.dev/compatibility-lab/
 https://sprite-to-aseprite.pages.dev/articles/
 https://sprite-to-aseprite.pages.dev/articles/aseprite-frames-layers-cels/
 https://sprite-to-aseprite.pages.dev/articles/browser-local-conversion/
+https://sprite-to-aseprite.pages.dev/articles/verify-sprite-conversion/
 https://sprite-to-aseprite.pages.dev/troubleshooting/
 https://sprite-to-aseprite.pages.dev/about/
 https://sprite-to-aseprite.pages.dev/privacy/
