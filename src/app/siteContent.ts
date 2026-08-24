@@ -24,6 +24,7 @@ type FormatSupport = {
 export const INFORMATION_PAGE_LINKS: readonly SitePageLink[] = [
   { href: "/", id: "converter", label: "Converter" },
   { href: "/guides/", id: "guides", label: "Guides" },
+  { href: "/compatibility-lab/", id: "compatibility-lab", label: "Test lab" },
   { href: "/articles/", id: "articles", label: "Articles" },
   { href: "/troubleshooting/", id: "troubleshooting", label: "Troubleshooting" },
   { href: "/about/", id: "about", label: "About" },
@@ -178,11 +179,10 @@ export const SUPPORTED_FORMATS: readonly FormatSupport[] = [
   {
     input: "OpenRaster project",
     requiredFiles: "Exactly one `.ora` file with supported normal PNG-backed raster layers.",
-    animation: "Limited; imports the supported raster layer data the importer can map.",
+    animation: "No; the supported subset imports one static frame.",
     layerPreservation:
       "Preserves supported normal raster layers and layer metadata.",
-    duration:
-      "Only documented timing/frame data is preserved when the source subset supports it.",
+    duration: "Creates one 100 ms output frame.",
     limitations:
       "Nested stacks, unsupported blend modes, and missing layer data are rejected.",
     supportLevel: "Limited support",
@@ -236,11 +236,10 @@ export const SUPPORTED_FORMATS: readonly FormatSupport[] = [
   {
     input: "Krita project",
     requiredFiles: "Exactly one `.kra` file from the documented 8-bit RGBA paint-layer subset.",
-    animation: "Limited to documented frame data when present.",
+    animation: "No; the supported subset imports one static frame.",
     layerPreservation:
       "Preserves supported paint layers from the documented subset.",
-    duration:
-      "Preserves supported frame timing only where the importer documents it.",
+    duration: "Creates one 100 ms output frame.",
     limitations:
       "Vector layers, unsupported color depth, flattened-preview-only files, and missing layer data are rejected.",
     supportLevel: "Limited support",
@@ -265,11 +264,10 @@ export const SUPPORTED_FORMATS: readonly FormatSupport[] = [
   {
     input: "PSD project",
     requiredFiles: "Exactly one `.psd` file from the RGB 8-bit raster-layer subset.",
-    animation: "Initial support focuses on raster layers, not full Photoshop animation.",
+    animation: "No; the supported subset imports one static frame.",
     layerPreservation:
-      "Preserves supported visible raster layer names and opacity where possible.",
-    duration:
-      "Uses standard output timing unless documented frame data exists in the supported subset.",
+      "Preserves supported raster layer names, order, visibility, opacity, placement, and decoded RGBA pixels.",
+    duration: "Creates one 100 ms output frame.",
     limitations:
       "Text layers, smart objects, adjustment layers, effects, unsupported blend modes, unsupported color modes, and PSB are outside the supported subset.",
     supportLevel: "Experimental",
@@ -502,6 +500,19 @@ export function createHomepageOverview(document: Document): HTMLElement {
     "The converter rebuilds timelines from flat frame sources and preserves layers only when a supported project file actually contains supported raster layer data.",
   );
   const cards = document.createElement("div");
+  const evidenceImage = document.createElement("img");
+  evidenceImage.src = "/samples/spark-sheet.png";
+  evidenceImage.alt = "Enlarged synthetic two-frame spark spritesheet used by the public test suite";
+  evidenceImage.className = "homepage-evidence-image";
+  evidenceImage.width = 320;
+  evidenceImage.height = 160;
+  const evidenceCard = createCard(document, "Repeat a verified conversion", [
+    evidenceImage,
+    createParagraph(
+      document,
+      "Download the original synthetic inputs used by the test suite and compare observed canvas, frame timing, layers, transparency, and intentional rejection boundaries.",
+    ),
+  ]);
   const guidesCard = createCard(document, "Choose the right source", [
     createParagraph(
       document,
@@ -535,8 +546,9 @@ export function createHomepageOverview(document: Document): HTMLElement {
   section.className = "panel homepage-overview";
   section.setAttribute("aria-labelledby", "homepage-overview-heading");
   heading.id = "homepage-overview-heading";
-  heading.textContent = "Documentation built around the converter";
+  heading.textContent = "Evidence and documentation built around the converter";
   cards.className = "card-grid";
+  addLink(evidenceCard, "/compatibility-lab/", "Open the public compatibility lab");
   addLink(guidesCard, "/guides/", "Open the conversion guides");
   addLink(
     architectureCard,
@@ -548,7 +560,7 @@ export function createHomepageOverview(document: Document): HTMLElement {
     "/troubleshooting/",
     "Open troubleshooting",
   );
-  cards.append(guidesCard, architectureCard, troubleshootingCard);
+  cards.append(evidenceCard, guidesCard, architectureCard, troubleshootingCard);
   section.append(heading, introduction, cards);
   return section;
 }

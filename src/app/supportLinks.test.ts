@@ -247,7 +247,6 @@ describe("support entry placement", () => {
     const downloadArea = findByClass(root, "download-area");
 
     expect(supportLinks.map((link) => getText(link))).toEqual([
-      "Support",
       "GitHub Sponsors",
       "Support",
     ]);

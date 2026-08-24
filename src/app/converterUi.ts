@@ -60,7 +60,6 @@ import {
   createSiteNavigationLinks,
 } from "./siteContent";
 import {
-  createSupportEntryPoint,
   createSupportFooter,
   createSupportSection,
   DEFAULT_SUPPORT_LINKS,
@@ -234,14 +233,14 @@ const MODE_HELP: Record<FileImportFormat, ModeHelp> = {
   krita: {
     expectedFiles: "Exactly one `.kra` file from the documented 8-bit RGBA paint-layer subset.",
     preserves:
-      "Supported paint layers, names, order, visibility, opacity, and documented frame data.",
+      "One 100 ms frame with supported paint layers, names, order, visibility, opacity, signed positions, and decoded pixels.",
     limitations:
       "Vector layers, unsupported color depth, flattened-preview-only files, and missing layer data are rejected.",
   },
   psd: {
     expectedFiles: "Exactly one `.psd` file from the RGB 8-bit raster-layer subset.",
     preserves:
-      "Supported visible raster layer names, order, opacity, and pixels where possible.",
+      "One 100 ms frame with supported raster layer names, order, visibility, opacity, placement, and decoded RGBA pixels.",
     limitations:
       "Text layers, smart objects, adjustment layers, effects, unsupported blend modes, unsupported color modes, and PSB are outside the supported subset.",
   },
@@ -901,7 +900,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   header.className = "site-header";
   siteNav.setAttribute("aria-label", "Site links");
   siteNav.className = "site-nav";
-  siteNav.append(...createSiteNavigationLinks(document), createSupportEntryPoint(document));
+  siteNav.append(...createSiteNavigationLinks(document));
   hero.className = "hero";
   hero.setAttribute("aria-labelledby", "hero-heading");
   eyebrow.className = "eyebrow";

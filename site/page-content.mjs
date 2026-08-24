@@ -255,6 +255,75 @@ SpriteProject layer Color: cel(frame 0), cel(frame 1)</div>
     <p class="callout warning">“Project file” does not mean “lossless.” Support is a mapping of specific verified structures, not an endorsement of universal compatibility with the source editor.</p>
   `,
 
+  "/compatibility-lab/": `
+    <p>This lab turns compatibility claims into repeatable checks. Every downloadable file below is tiny, original test artwork generated inside the public repository. None of it contains user artwork or a third-party asset. You can inspect the generator, download the exact input, run it through the production converter, and compare the resulting project with the observations recorded here.</p>
+    <p class="callout success"><strong>Evidence boundary:</strong> a passing fixture demonstrates the documented structure represented by that fixture. It does not prove universal compatibility with every file made by the same editor.</p>
+
+    <h2>Start with the two-frame spark</h2>
+    <div class="sample-gallery" aria-label="Synthetic PNG sequence and spritesheet samples">
+      <figure class="sample-card">
+        <img src="/samples/spark-01.png" width="160" height="160" alt="Enlarged four by four synthetic coral and yellow spark frame">
+        <figcaption><strong>Frame 1</strong><span>4×4 RGBA PNG · flat pixels</span><a href="/samples/spark-01.png" download>Download spark-01.png</a></figcaption>
+      </figure>
+      <figure class="sample-card">
+        <img src="/samples/spark-02.png" width="160" height="160" alt="Enlarged four by four synthetic cyan and yellow spark frame shifted right">
+        <figcaption><strong>Frame 2</strong><span>4×4 RGBA PNG · flat pixels</span><a href="/samples/spark-02.png" download>Download spark-02.png</a></figcaption>
+      </figure>
+      <figure class="sample-card sample-card-wide">
+        <img src="/samples/spark-sheet.png" width="320" height="160" alt="Enlarged eight by four spritesheet containing the coral and cyan spark frames">
+        <figcaption><strong>Horizontal sheet</strong><span>8×4 RGBA PNG · two 4×4 cells</span><a href="/samples/spark-sheet.png" download>Download spark-sheet.png</a></figcaption>
+      </figure>
+    </div>
+
+    <h3>Repeat the PNG sequence check</h3>
+    <ol class="steps"><li>Download both 4×4 PNG frames above.</li><li>Open the <a href="/">converter</a>, choose <strong>PNG sequence</strong>, and add the two files in frame order.</li><li>Start conversion, then inspect the local preview before downloading the generated Aseprite file.</li><li>Open the result in Aseprite and compare the canvas, frame count, layer count, order, transparency, and representative pixels.</li></ol>
+    <div class="table-scroll"><table><caption>Observed PNG sequence result</caption><thead><tr><th>Check</th><th>Expected observation</th><th>Why</th></tr></thead><tbody><tr><td>Canvas</td><td>4×4 RGBA</td><td>Both inputs have the same decoded dimensions.</td></tr><tr><td>Timeline</td><td>2 ordered frames</td><td>Each PNG becomes one frame in supplied order.</td></tr><tr><td>Timing</td><td>100 ms per frame</td><td>The sequence importer uses its documented default duration.</td></tr><tr><td>Layers</td><td>1 generated layer</td><td>PNG stores composited pixels, not original editor-layer records.</td></tr><tr><td>Transparency</td><td>Unused pixels remain transparent</td><td>RGBA pixel alpha is carried into each cel.</td></tr></tbody></table></div>
+
+    <h3>Repeat the atlas metadata check</h3>
+    <p>Use the same pixels as an atlas by downloading <a href="/samples/spark-sheet.png" download>spark-sheet.png</a> and <a href="/samples/spark-sheet.json" download>spark-sheet.json</a>. Choose <strong>Spritesheet PNG + JSON</strong> and add both files. The JSON names two rectangles: <code>(0,0,4,4)</code> and <code>(4,0,4,4)</code>. The observed result is a 4×4, two-frame, one-layer timeline with durations of 80 ms and 120 ms. The metadata changes timing and slicing; it still does not create source layers that are absent from the flat sheet.</p>
+    <details class="evidence-details"><summary>Read the exact atlas metadata</summary><pre><code>{
+  "frames": [
+    { "frame": { "x": 0, "y": 0, "w": 4, "h": 4 }, "duration": 80 },
+    { "frame": { "x": 4, "y": 0, "w": 4, "h": 4 }, "duration": 120 }
+  ],
+  "meta": { "image": "spark-sheet.png", "size": { "w": 8, "h": 4 } }
+}</code></pre></details>
+
+    <h2>Layered project checks</h2>
+    <p>Flat images test frame reconstruction. Project files test a different claim: preserving supported layers when the source actually contains layer records. These files are deliberately tiny so their structure and output can be inspected without relying on private artwork.</p>
+    <div class="table-scroll"><table><caption>Downloadable positive project fixtures and observed normalized results</caption><thead><tr><th>Input</th><th>Observed SpriteProject</th><th>Preservation evidence</th></tr></thead><tbody>
+      <tr><td><a href="/samples/multi-layer.piskel" download>multi-layer.piskel</a></td><td>2×2 · 2 frames at 50 ms · 2 layers</td><td><code>Background</code> and <code>Accent</code> layer records, with source opacities 0.5 and 1, map to separate Aseprite layers.</td></tr>
+      <tr><td><a href="/samples/two-layers-two-frames.pixil" download>two-layers-two-frames.pixil</a></td><td>2×2 · 2 frames at 120/75 ms · 2 layers</td><td>Stable layer identities and full-canvas embedded PNG cels are reconstructed across both frames.</td></tr>
+      <tr><td><a href="/samples/two-layers-two-frames.pxo" download>two-layers-two-frames.pxo</a></td><td>2×2 · 2 frames at 100/250 ms · 2 layers</td><td>Names, order, visibility, opacity, frame duration multipliers, and raw RGBA cel payloads are mapped.</td></tr>
+      <tr><td><a href="/samples/two-layers.ora" download>two-layers.ora</a></td><td>4×3 · 1 frame at 100 ms · 2 layers</td><td>Names, order, visibility, opacity, signed offsets, and PNG-backed raster pixels remain distinct.</td></tr>
+      <tr><td><a href="/samples/two-paint-layers.kra" download>two-paint-layers.kra</a></td><td>2×2 · 1 frame at 100 ms · 2 layers</td><td>Supported Krita paint-device tiles decode from native BGRA bytes; flattened previews are not used to invent layers.</td></tr>
+      <tr><td><a href="/samples/two-layers.psd" download>two-layers.psd</a></td><td>4×3 · 1 frame at 100 ms · 2 layers</td><td>The narrow RGB 8-bit subset maps raster layer names, order, visibility, opacity, and decoded RGBA pixels.</td></tr>
+    </tbody></table></div>
+    <p>To repeat one of these checks, download the fixture, choose its matching project mode, convert, and inspect the preview plus the downloaded file. A normal raster layer result is evidence of source layer data being mapped. It is not evidence that groups, vectors, masks, effects, text, smart objects, tilemaps, or non-normal blends were preserved.</p>
+
+    <h2>Animation timing and compositing checks</h2>
+    <div class="sample-gallery sample-gallery-two">
+      <figure class="sample-card">
+        <img src="/samples/timing-transparency-offsets.gif" width="240" height="160" alt="Enlarged synthetic GIF used to test timing transparency and partial frame offsets">
+        <figcaption><strong>GIF timing fixture</strong><span>3×2 · 4 composited frames</span><a href="/samples/timing-transparency-offsets.gif" download>Download GIF</a></figcaption>
+      </figure>
+      <figure class="sample-card">
+        <img src="/samples/timing-offsets.apng" width="240" height="160" alt="Enlarged synthetic APNG used to test timing and partial frame offsets">
+        <figcaption><strong>APNG timing fixture</strong><span>3×2 · 4 composited frames</span><a href="/samples/timing-offsets.apng" download>Download APNG</a></figcaption>
+      </figure>
+    </div>
+    <p>The GIF fixture exercises transparency, partial rectangles, and delay normalization. Its observed durations are 100, 20, 120, and 65,535 ms. The APNG fixture exercises partial rectangles and rational delay normalization; its observed durations are 1, 17, 10, and 65,535 ms. Both formats produce one generated flat layer because animation frames do not contain the original editor's layer stack.</p>
+
+    <h2>What the tests intentionally reject</h2>
+    <p>A credible compatibility boundary includes failures. The automated suite does not silently accept a file merely because its extension looks familiar. Representative rejection checks include:</p>
+    <ul><li>PNG sequence frames with mismatched decoded dimensions.</li><li>A grid whose cell products do not exactly fit its spritesheet.</li><li>Atlas rectangles outside the source image, incomplete trim data, rotated frames, and invalid durations.</li><li>Malformed JSON, invalid PNG signatures, unsafe ZIP paths, missing archive entries, and resource limits.</li><li>External Pixil image URLs, unsupported model versions, ambiguous layer identity, and missing cels.</li><li>Project groups, tilemaps, effects, masks, vector or text objects, unsupported color modes, and non-normal blend behavior outside the documented subset.</li><li>Flattened previews offered in place of actual layer payloads.</li></ul>
+    <p>Failing closed protects the meaning of the output. It is better to explain that a structure is unsupported than to return a file labeled editable after silently discarding data.</p>
+
+    <h2>Inspect and reproduce the evidence</h2>
+    <p>The public samples are copied byte-for-byte from the repository's deterministic fixtures. Their generator can reproduce them locally, and automated tests assert that the published copies have not drifted from the inputs used by the importers. Start with the <a href="https://github.com/khs2325/sprite-to-aseprite/blob/main/tests/fixtures/README.md">fixture inventory and provenance notes</a>, inspect the <a href="https://github.com/khs2325/sprite-to-aseprite/blob/main/tests/fixtures/generate.mjs">deterministic generator</a>, and follow the <a href="https://github.com/khs2325/sprite-to-aseprite/blob/main/src/core/conversion.integration.test.ts">end-to-end conversion assertions</a>. The <a href="https://github.com/khs2325/sprite-to-aseprite/blob/main/src/core/exporters/aseprite/aseprite.test.ts">Aseprite writer tests</a> cover binary structure and validation.</p>
+    <p>Maintainer: <a href="https://github.com/khs2325">khs2325</a>. Corrections and reproducible compatibility reports belong in the <a href="https://github.com/khs2325/sprite-to-aseprite/issues">public issue tracker</a>; use newly created synthetic artwork rather than private source files.</p>
+  `,
+
   "/articles/": `
     <p>The converter is small enough to use without understanding its internals, but its decisions make more sense once pixels, cels, timelines, validation, and browser-local processing are separated. These articles document the implementation rather than paraphrasing a generic conversion service.</p>
     <div class="card-grid">
@@ -265,6 +334,7 @@ SpriteProject layer Color: cel(frame 0), cel(frame 1)</div>
     <p>Privacy and compatibility share one architectural boundary: every importer must turn its source into the same <code>SpriteProject</code> without sending artwork away. Once that model is valid, the Aseprite writer no longer needs to know whether pixels came from PNG, GIF, a ZIP-based project, or PSD channels.</p>
     <p>The model also explains why flat images cannot yield layers. A rendered PNG supplies one pixel result; it does not supply the missing relationships between logical layers and cels. Read the data-model article first when a preservation claim is unclear, and the browser article when a network or memory question is unclear.</p>
     <h2>Apply the model to a real conversion</h2>
+    <p>Open the <a href="/compatibility-lab/">compatibility lab</a> to download the exact synthetic PNG, atlas, project, GIF, and APNG inputs used by the test suite. Each experiment records observed canvas, frame, timing, and layer values and links back to its public generator and assertions.</p>
     <p>Return to the <a href="/guides/">guide hub</a> to choose an input format, or open <a href="/troubleshooting/">troubleshooting</a> when validation has already stopped a conversion.</p>
   `,
 
@@ -351,7 +421,7 @@ browser download</div>
     <p>Following the GitHub repository or optional support link navigates to another service governed by its own policy. Attaching a file to an issue, email, chat, cloud drive, or validator is also separate from browser-local conversion. Use a newly created minimal reproduction instead of private artwork when reporting a problem.</p>
 
     <h2>Advertising status and boundaries</h2>
-    <p>The homepage contains Google AdSense account-verification metadata, but the current repository does not load a live AdSense script or render ad units. The privacy policy describes how the site would need to handle third-party advertising if it is activated later. Advertising must remain separate from file selection, conversion, errors, and downloads.</p>
+    <p>Public pages contain Google AdSense account-verification metadata, but the current repository does not load a live AdSense script or render ad units. The privacy policy describes how the site would need to handle third-party advertising if it is activated later. Advertising must remain separate from file selection, conversion, errors, and downloads.</p>
 
     <h2>How to verify the boundary yourself</h2>
     <ol><li>Load the production page and allow its static assets to finish.</li><li>Open the browser Network panel and clear the request list.</li><li>Convert a tiny synthetic PNG sequence or project fixture that contains no private work.</li><li>Confirm no new request body or URL contains the source file, its embedded metadata, or the generated output.</li><li>Remember that clicking an external link or enabling future third-party scripts changes the set of requests and should be reviewed separately.</li></ol>
@@ -429,14 +499,16 @@ browser download</div>
 
     <h2>Maintenance and source</h2>
     <p>The public repository is maintained under the GitHub account <a href="https://github.com/khs2325">khs2325</a>. Source, tests, task history, format notes, and current issues are available at <a href="https://github.com/khs2325/sprite-to-aseprite">github.com/khs2325/sprite-to-aseprite</a>. The repository does not present itself as a company, Aseprite partnership, or endorsement.</p>
+    <p>Compatibility claims are reviewed against deterministic synthetic fixtures, importer unit tests, end-to-end conversion tests, and Aseprite writer tests. The public <a href="/compatibility-lab/">compatibility lab</a> exposes representative inputs and observed results. This page and the public evidence were last reviewed August 24, 2026.</p>
     <p>Development and compatibility research are ongoing. A listed subset describes what the current implementation has evidence to support; it does not promise every file from that application will convert.</p>
 
     <h2 id="contact">Questions and compatibility reports</h2>
-    <p>Use the public repository issue tracker for reproducible bugs or documentation corrections. Do not post private artwork. A new tiny synthetic file that demonstrates the same structure is safer and usually easier to diagnose.</p>
+    <p>Use the <a href="https://github.com/khs2325/sprite-to-aseprite/issues">public repository issue tracker</a> for reproducible bugs or documentation corrections. Do not post private artwork. A new tiny synthetic file that demonstrates the same structure is safer and usually easier to diagnose.</p>
     <p>Before reporting, read <a href="/troubleshooting/">Troubleshooting</a> and the matching <a href="/guides/">format guide</a>. Useful reports identify the import mode, browser, operating system, Aseprite version, exact safe error message, and expected frame or layer behavior.</p>
   `,
 
   "/privacy/": `
+    <p class="review-line"><strong>Effective and last updated:</strong> August 24, 2026 · <strong>Maintainer:</strong> <a href="https://github.com/khs2325">khs2325</a></p>
     <p>This policy explains the privacy boundary of the production site at <code>sprite-to-aseprite.pages.dev</code>. The core conversion design keeps selected artwork and generated Aseprite bytes in the browser. It does not make unrelated hosting requests or voluntary external sharing disappear.</p>
 
     <h2>Artwork processing</h2>
@@ -451,17 +523,18 @@ browser download</div>
     <p>Attaching files to a GitHub issue, email, cloud drive, chat, validator, or support page is a separate voluntary disclosure. Do not share private artwork when reporting a bug; make a minimal synthetic reproduction instead.</p>
 
     <h2>Advertising</h2>
-    <p>The homepage currently contains Google AdSense account-verification metadata. The repository does not currently load a live AdSense script or display ad units. If advertising is activated later, this policy and the deployed behavior should be reviewed together before launch.</p>
+    <p>Public pages currently contain Google AdSense account-verification metadata. The repository does not currently load a live AdSense script or display ad units. If advertising is activated later, this policy and the deployed behavior should be reviewed together before launch.</p>
     <p>Third-party advertising vendors, including Google, may use cookies to serve ads if their advertising services are enabled. Google may use advertising cookies to serve ads based on prior visits to this or other sites. Users can manage personalized advertising through <a href="https://adssettings.google.com/">Google Ads Settings</a>. These statements describe possible future advertising behavior; they do not state that live ads or advertising cookies are currently active.</p>
 
     <h2>Analytics, error reporting, and payments</h2>
     <p>The current repository does not add an analytics service, remote error-reporting script, conversion telemetry, or direct payment processing. External hosting and support providers may operate their own systems when their pages are requested. No secret payment information should be entered into this static converter page.</p>
 
     <h2>Changes and questions</h2>
-    <p>Material changes to hosting, analytics, advertising, or artwork handling should be reflected here before deployment. For a technical explanation of the current boundary, read <a href="/articles/browser-local-conversion/">How browser-local conversion works</a>. Questions or corrections can be raised through the <a href="/about/#contact">project contact guidance</a>.</p>
+    <p>Material changes to hosting, analytics, advertising, or artwork handling should be reflected here before deployment. For a technical explanation of the current boundary, read <a href="/articles/browser-local-conversion/">How browser-local conversion works</a>. Questions or corrections can be raised through the <a href="https://github.com/khs2325/sprite-to-aseprite/issues">public issue tracker</a> without attaching private artwork.</p>
   `,
 
   "/terms/": `
+    <p class="review-line"><strong>Effective and last updated:</strong> August 24, 2026 · <strong>Maintainer:</strong> <a href="https://github.com/khs2325">khs2325</a></p>
     <p>These terms describe practical conditions for using Sprite to Aseprite Converter. They do not create a guarantee that every file will convert or that every source-application feature can be recovered.</p>
 
     <h2>Permitted use</h2>
