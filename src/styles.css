@@ -187,6 +187,18 @@ a:focus-visible {
   gap: 1rem;
 }
 
+.converter-source-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.converter-source-grid > .format-route-container,
+.converter-source-grid > .workflow-panel {
+  margin-bottom: 0;
+}
+
 .workflow-panel {
   margin-bottom: 1rem;
   border-color: #344758;
@@ -443,6 +455,16 @@ a:focus-visible {
 
 .mode-help h4 {
   margin: 0 0 0.5rem;
+}
+
+.mode-help summary {
+  cursor: pointer;
+  color: var(--mint);
+  font-weight: 750;
+}
+
+.mode-help[open] summary {
+  margin-bottom: 0.5rem;
 }
 
 .mode-help p {
@@ -1047,6 +1069,7 @@ td {
 
   .converter-section-header,
   .workflow-grid,
+  .converter-source-grid,
   .workflow-panel-convert {
     grid-template-columns: 1fr;
   }
@@ -1083,8 +1106,14 @@ td {
   }
 }
 
+@media (min-width: 44.01rem) and (max-width: 52rem) {
+  .converter-source-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .format-route-container {
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .format-route-panel {
@@ -1099,10 +1128,9 @@ td {
 
 .format-route-header {
   display: grid;
-  grid-template-columns: minmax(15rem, 0.8fr) minmax(20rem, 1.2fr);
-  gap: 0.25rem 2rem;
-  align-items: end;
-  padding: 1.25rem 1.4rem 0.5rem;
+  grid-template-columns: 1fr;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem 0.35rem;
 }
 
 .format-route-header h3,
@@ -1112,15 +1140,16 @@ td {
 
 .format-route-header h3 {
   grid-column: 1;
-  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
   letter-spacing: -0.025em;
 }
 
 .format-route-header > p:last-child {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  max-width: 42rem;
+  grid-column: 1;
+  grid-row: auto;
+  max-width: 36rem;
   color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .format-route-eyebrow {
@@ -1135,9 +1164,13 @@ td {
   position: relative;
   z-index: 30;
   display: grid;
-  grid-template-columns: minmax(14rem, 1.35fr) minmax(10rem, 0.8fr) minmax(10rem, 0.8fr);
-  gap: 0.65rem;
-  padding: 0.65rem 1rem 0.35rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem 0.25rem;
+}
+
+.format-route-search {
+  grid-column: 1 / -1;
 }
 
 .format-route-tool {
@@ -1157,7 +1190,8 @@ td {
 .format-route-tool input,
 .format-route-tool select {
   width: 100%;
-  min-height: 2.7rem;
+  min-height: 2.35rem;
+  padding: 0.42rem 0.55rem;
   border-color: rgba(152, 232, 222, 0.28);
   background-color: rgba(22, 12, 35, 0.88);
 }
@@ -1202,7 +1236,9 @@ td {
 
 .format-route-map {
   position: relative;
-  min-height: clamp(21rem, 42vw, 27rem);
+  width: min(calc(100% - 1rem), 19rem);
+  min-height: 0;
+  aspect-ratio: 1;
   margin: 0.5rem auto;
   overflow: hidden;
   border: 1px solid rgba(152, 232, 222, 0.16);
@@ -1233,7 +1269,7 @@ td {
   top: 50%;
   left: 50%;
   z-index: 1;
-  width: min(68%, 22rem);
+  width: 92%;
   aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid rgba(152, 232, 222, 0.36);
@@ -1246,6 +1282,21 @@ td {
     inset 1rem 1rem 3rem rgba(152, 232, 222, 0.08),
     0 0 4rem rgba(69, 169, 169, 0.15);
   transform: translate(-50%, -50%);
+}
+
+.format-route-globe-shade {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 6;
+  width: 92%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 25%, transparent 0 42%, rgba(22, 12, 35, 0.08) 68%, rgba(22, 12, 35, 0.52) 100%);
+  box-shadow: inset -1.8rem -1.5rem 2.8rem rgba(22, 12, 35, 0.28);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .format-route-globe-grid {
@@ -1265,10 +1316,10 @@ td {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 5;
+  z-index: 20;
   display: grid;
   place-items: center;
-  width: clamp(5.3rem, 13vw, 7.2rem);
+  width: clamp(4.6rem, 11vw, 5.8rem);
   aspect-ratio: 1;
   padding: 0.65rem;
   border: 1px solid rgba(152, 232, 222, 0.52);
@@ -1300,7 +1351,7 @@ td {
 
 .format-route-line {
   position: absolute;
-  z-index: 15;
+  z-index: 19;
   height: 3px;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--mint), #fff, var(--teal));
@@ -1327,8 +1378,8 @@ td {
   position: absolute;
   display: grid;
   justify-items: center;
-  width: 4.7rem;
-  min-height: 4.5rem;
+  width: 3.8rem;
+  min-height: 3.7rem;
   padding: 0.22rem;
   border: 1px solid transparent;
   border-radius: 0.8rem;
@@ -1361,8 +1412,8 @@ td {
   position: relative;
   display: grid;
   place-items: center;
-  width: 2.7rem;
-  height: 3.2rem;
+  width: 2.2rem;
+  height: 2.65rem;
   border: 1px solid rgba(152, 232, 222, 0.5);
   border-radius: 0.45rem;
   color: var(--mint);
@@ -1389,28 +1440,32 @@ td {
 }
 
 .format-file-icon span {
-  max-width: 2.8rem;
+  max-width: 2rem;
   overflow: hidden;
-  font-size: 0.62rem;
+  font-size: 0.52rem;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-overflow: ellipsis;
 }
 
 .format-route-node-label {
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   font-weight: 750;
   line-height: 1.1;
   text-align: center;
 }
 
 .format-route-node.is-back .format-file-icon {
-  width: 2.15rem;
-  height: 2.15rem;
+  width: 1.7rem;
+  height: 1.7rem;
   border-radius: 50%;
   background: rgba(62, 62, 117, 0.92);
   box-shadow: none;
   animation: none;
+}
+
+.format-route-node.is-back {
+  pointer-events: none;
 }
 
 .format-route-node.is-back .format-file-icon::after,
@@ -1452,17 +1507,17 @@ td {
 
 .format-route-readout {
   display: grid;
-  grid-template-columns: minmax(8rem, 1fr) auto minmax(8rem, 1fr) minmax(14rem, 1.5fr) auto;
-  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.45rem;
   align-items: center;
-  padding: 0.85rem 1rem 1rem;
+  padding: 0.6rem 0.75rem 0.75rem;
 }
 
 .format-route-endpoint {
   display: grid;
   gap: 0.1rem;
-  min-height: 3.4rem;
-  padding: 0.55rem 0.75rem;
+  min-height: 2.8rem;
+  padding: 0.4rem 0.55rem;
   border: 1px solid rgba(152, 232, 222, 0.24);
   border-radius: 0.65rem;
   background: rgba(22, 12, 35, 0.62);
@@ -1481,12 +1536,15 @@ td {
 }
 
 .format-route-status {
+  grid-column: 1 / -1;
   margin: 0;
   color: var(--muted);
   font-size: 0.9rem;
 }
 
 .format-route-reset {
+  grid-column: 1 / -1;
+  justify-self: start;
   min-height: 2.5rem;
   white-space: nowrap;
 }
@@ -1521,7 +1579,8 @@ td {
   }
 
   .format-route-map {
-    min-height: 22rem;
+    width: min(calc(100% - 1rem), 18rem);
+    min-height: 0;
   }
 
   .format-route-node {

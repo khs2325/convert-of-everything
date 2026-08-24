@@ -29,6 +29,7 @@ import {
   getSourceSelectionState,
   findNearestDivisor,
   mountConverterUi,
+  MODE_FILE_ACCEPT,
   MODE_LABELS,
   renderConversionState,
 } from "./converterUi";
@@ -608,7 +609,7 @@ describe("mountConverterUi Pixil selection", () => {
     expect(getText(root)).toContain("outside the supported subset");
   });
 
-  it("prioritizes the route map and four-step converter flow", () => {
+  it("places compact route selection beside a three-step file workflow", () => {
     vi.stubGlobal("HTMLImageElement", class HTMLImageElementStub {});
     const document = new UiDocumentStub();
     const root = document.createElement("main");
@@ -617,7 +618,7 @@ describe("mountConverterUi Pixil selection", () => {
     const converter = findOne(root, (element) => element.id === "converter");
     const modeHelper = findOne(root, (element) => element.id === "mode-helper");
     const workflowGrid = findOne(root, (element) =>
-      element.className.split(/\s+/).includes("workflow-grid"),
+      element.className.split(/\s+/).includes("converter-source-grid"),
     );
     const results = findOne(root, (element) =>
       element.className.split(/\s+/).includes("result-workspace"),
@@ -627,13 +628,13 @@ describe("mountConverterUi Pixil selection", () => {
       root.children.indexOf(modeHelper),
     );
     expect(workflowGrid.children.map((element) => element.className)).toEqual([
-      expect.stringContaining("workflow-panel-mode"),
+      expect.stringContaining("format-route-container"),
       expect.stringContaining("workflow-panel-files"),
     ]);
     expect(getText(converter)).toContain("Step 1 · Draw a conversion route");
-    expect(getText(converter)).toContain("2. Refine source settings");
-    expect(getText(converter)).toContain("3. Add source files");
-    expect(getText(converter)).toContain("4. Convert and download");
+    expect(getText(converter)).not.toContain("Refine source settings");
+    expect(getText(converter)).toContain("2. Add source files");
+    expect(getText(converter)).toContain("3. Convert and download");
     expect(results.hidden).toBe(true);
     expect(getText(root)).toContain("Runs in your browser");
     expect(getText(root)).toContain("No artwork uploads");
@@ -670,6 +671,10 @@ describe("mountConverterUi Pixil selection", () => {
       root,
       (element) => element.getAttribute("data-route-node") === "aseprite",
     );
+    const fileInput = findOne(
+      root,
+      (element) => element.tagName === "input" && element.type === "file",
+    );
 
     gifNode.click();
     expect(getText(root)).toContain(
@@ -678,6 +683,7 @@ describe("mountConverterUi Pixil selection", () => {
     asepriteNode.click();
 
     expect(modeSelect.value).toBe("gif");
+    expect(fileInput.accept).toBe(MODE_FILE_ACCEPT.gif);
     expect(getText(root)).toContain("GIF to Aseprite is selected");
     expect(getText(root)).toContain("Convert GIF animation → Aseprite");
   });
