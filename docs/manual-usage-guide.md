@@ -49,8 +49,8 @@ the server with `Ctrl+C`.
 1. On the **Conversion route map**, drag the globe to rotate the file formats
    attached to its surface. Click the source format and then the desired output.
    Formats on the back appear as compact abbreviations; use **Find a format** or
-   the **Source** and **Output** dropdowns to select one directly. Use **Refine
-   source settings** when the source has multiple variants.
+   the **Source** and **Output** dropdowns to select one directly. Format notes
+   and spritesheet grid controls appear inside the source-file panel when needed.
 2. Under **Add source files**, drag the required files onto the drop area or
    use the file picker. The app accepts `.png`, `.json`, `.piskel`, `.gif`,
    `.apng`, `.ora`, `.pxo`, `.pixil`, `.kra`, and `.psd` files. Each conversion

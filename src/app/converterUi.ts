@@ -146,6 +146,21 @@ export const MODE_LABELS: Record<FileImportFormat, string> = {
   aseprite: "Aseprite project",
 };
 
+export const MODE_FILE_ACCEPT: Record<FileImportFormat, string> = {
+  "png-sequence": ".png,image/png",
+  "spritesheet-grid": ".png,image/png",
+  "spritesheet-json": ".png,.json,image/png,application/json",
+  piskel: ".piskel",
+  pixil: ".pixil",
+  gif: ".gif,image/gif",
+  apng: ".apng,.png,image/apng,image/png",
+  openraster: ".ora,image/openraster",
+  pixelorama: ".pxo,application/x-pixelorama",
+  krita: ".kra,application/x-krita,application/x-kra",
+  psd: ".psd,image/vnd.adobe.photoshop,image/x-photoshop,image/psd",
+  aseprite: ".ase,.aseprite,application/x-aseprite,image/x-aseprite",
+};
+
 export function getImportDropInstructions(mode: FileImportFormat): string {
   if (mode === "aseprite") {
     return "Drop exactly one supported .ase or .aseprite file here, or choose one below.";
@@ -1013,20 +1028,17 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     "Connect a source file format to a supported destination, then add files and convert along that route.";
   converterHeader.append(converterHeading, converterIntro);
   routeMapContainer.className = "format-route-container";
-  workflowGrid.className = "workflow-grid";
+  workflowGrid.className = "converter-source-grid";
 
-  const controls = document.createElement("section");
-  const controlsHeading = document.createElement("h3");
   const modeLabel = document.createElement("label");
   const modeSelect = document.createElement("select");
-  const modeHelpPanel = document.createElement("aside");
-  const modeHelpHeading = document.createElement("h4");
+  const modeHelpPanel = document.createElement("details");
+  const modeHelpHeading = document.createElement("summary");
   const modeHelpExpected = document.createElement("p");
   const modeHelpPreserves = document.createElement("p");
   const modeHelpLimitations = document.createElement("p");
-  controls.className = "panel workflow-panel workflow-panel-mode";
-  controlsHeading.textContent = "2. Refine source settings";
   modeLabel.textContent = "Source import mode";
+  modeLabel.hidden = true;
   modeSelect.id = "source-import-mode";
   for (const [value, label] of Object.entries(MODE_LABELS)) {
     const option = document.createElement("option");
@@ -1035,9 +1047,9 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     modeSelect.append(option);
   }
   modeLabel.append(modeSelect);
-  modeHelpPanel.className = "mode-help";
+  modeHelpPanel.className = "mode-help source-mode-note";
   modeHelpPanel.setAttribute("aria-live", "polite");
-  modeHelpHeading.textContent = "Mode guidance";
+  modeHelpHeading.textContent = "Selected format notes";
   modeHelpPanel.append(
     modeHelpHeading,
     modeHelpExpected,
@@ -1116,14 +1128,6 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     gridExactFitStatus,
     gridPreviewWarning,
   );
-  controls.append(
-    controlsHeading,
-    modeLabel,
-    modeHelpPanel,
-    gridFields,
-    gridPreview,
-  );
-
   const importPanel = document.createElement("section");
   const importHeading = document.createElement("h3");
   const dropZone = document.createElement("div");
@@ -1137,10 +1141,11 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const selectedFileList = document.createElement("ul");
   const clearFilesButton = document.createElement("button");
   importPanel.className = "panel workflow-panel workflow-panel-files";
-  importHeading.textContent = "3. Add source files";
+  importHeading.textContent = "2. Add source files";
   dropZone.className = "drop-zone";
   dropInstructions.textContent =
     getImportDropInstructions("png-sequence");
+  dropInstructions.id = "source-file-instructions";
   fileInput.type = "file";
   fileInput.multiple = true;
   fileInput.accept = SUPPORTED_SOURCE_ACCEPT;
@@ -1148,6 +1153,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     "aria-label",
     "Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite sprite source files",
   );
+  fileInput.setAttribute("aria-describedby", dropInstructions.id);
   sourceError.setAttribute("role", "alert");
   sourceError.setAttribute("aria-live", "assertive");
   sourceStatus.setAttribute("role", "status");
@@ -1175,6 +1181,10 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     sourceError,
     sourceStatus,
     memoryWarning,
+    modeHelpPanel,
+    gridFields,
+    gridPreview,
+    modeLabel,
   );
 
   const convertPanel = document.createElement("section");
@@ -1184,7 +1194,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const conversionStatus = document.createElement("p");
   const conversionError = document.createElement("p");
   convertPanel.className = "panel workflow-panel workflow-panel-convert";
-  convertHeading.textContent = "4. Convert and download";
+  convertHeading.textContent = "3. Convert and download";
   convertButton.type = "button";
   convertButton.textContent = "Start conversion";
   convertButton.disabled = true;
@@ -1222,10 +1232,9 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   exportContainer.className = "download-area";
   workspace.append(previewContainer, layerContainer);
   convertPanel.append(exportContainer);
-  workflowGrid.append(controls, importPanel);
+  workflowGrid.append(routeMapContainer, importPanel);
   converterSection.append(
     converterHeader,
-    routeMapContainer,
     workflowGrid,
     convertPanel,
     workspace,
@@ -1636,6 +1645,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     gridFields.hidden = mode !== "spritesheet-grid";
     fileInput.multiple =
       mode === "png-sequence" || mode === "spritesheet-json";
+    fileInput.accept = MODE_FILE_ACCEPT[mode];
     dropInstructions.textContent = getImportDropInstructions(mode);
     updateConvertButtonLabel();
     renderSelectedFiles();

@@ -62,6 +62,7 @@ export const FORMAT_ROUTE_NODES: readonly FormatRouteNode[] = [
 ] as const;
 
 const FORMAT_LATITUDES = [18, -24, 4, 32, -8, 20, -34, 2, 35, -18, -36, 0] as const;
+const FORMAT_GLOBE_DRAG_THRESHOLD = 6;
 
 function getNode(id: string | null): FormatRouteNode | undefined {
   return FORMAT_ROUTE_NODES.find((node) => node.id === id);
@@ -80,6 +81,13 @@ function toggleClass(element: HTMLElement, token: string, force: boolean): void 
 
 function toRadians(degrees: number): number {
   return degrees * Math.PI / 180;
+}
+
+export function shouldStartFormatGlobeDrag(
+  deltaX: number,
+  deltaY: number,
+): boolean {
+  return Math.hypot(deltaX, deltaY) >= FORMAT_GLOBE_DRAG_THRESHOLD;
 }
 
 export function projectFormatSurfacePoint(
@@ -104,7 +112,7 @@ export function projectFormatSurfacePoint(
 
   return {
     depth,
-    isBack: depth < -0.08,
+    isBack: depth < 0,
     leftPercent: 50 + rotatedX * 35,
     scale: 0.64 + normalizedDepth * 0.36,
     topPercent: 50 - rotatedY * 35,
@@ -174,6 +182,7 @@ export function mountFormatRouteMap(
   const map = document.createElement("div");
   const globe = document.createElement("div");
   const globeGrid = document.createElement("div");
+  const globeShade = document.createElement("div");
   const routeLine = document.createElement("div");
   const hub = document.createElement("div");
   const hubKicker = document.createElement("span");
@@ -247,6 +256,8 @@ export function mountFormatRouteMap(
   globe.setAttribute("aria-hidden", "true");
   globeGrid.className = "format-route-globe-grid";
   globe.append(globeGrid);
+  globeShade.className = "format-route-globe-shade";
+  globeShade.setAttribute("aria-hidden", "true");
   routeLine.className = "format-route-line";
   routeLine.setAttribute("aria-hidden", "true");
   hub.className = "format-route-hub";
@@ -254,7 +265,7 @@ export function mountFormatRouteMap(
   hubText.textContent = "Choose source";
   dragHint.textContent = "Drag to rotate";
   hub.append(hubKicker, hubText, dragHint);
-  map.append(globe, routeLine, hub);
+  map.append(globe, globeShade, routeLine, hub);
 
   for (const node of FORMAT_ROUTE_NODES) {
     const button = document.createElement("button");
@@ -323,6 +334,7 @@ export function mountFormatRouteMap(
   let dragStartY = 0;
   let dragStartRotationX = 0;
   let dragStartRotationY = 0;
+  let isDragging = false;
   let dragMoved = false;
   let suppressClick = false;
 
@@ -336,6 +348,8 @@ export function mountFormatRouteMap(
     if (
       sourceButton === undefined ||
       targetButton === undefined ||
+      sourceButton.getAttribute("data-surface-side") === "back" ||
+      targetButton.getAttribute("data-surface-side") === "back" ||
       typeof map.getBoundingClientRect !== "function" ||
       typeof sourceButton.getBoundingClientRect !== "function"
     ) {
@@ -369,7 +383,11 @@ export function mountFormatRouteMap(
       const point = projectFormatSurfacePoint(node.position, rotationX, rotationY);
       button.style.left = `${point.leftPercent}%`;
       button.style.top = `${point.topPercent}%`;
-      button.style.zIndex = String(6 + Math.round((point.depth + 1) * 8));
+      button.style.zIndex = String(
+        point.isBack
+          ? 2 + Math.round((point.depth + 1) * 3)
+          : 10 + Math.round(point.depth * 8),
+      );
       const surfaceOpacity = point.isBack ? 0.42 : 0.78 + (point.depth + 1) * 0.11;
       button.style.opacity = String(
         hasClass(button, "is-muted") ? surfaceOpacity * 0.38 : surfaceOpacity,
@@ -516,14 +534,19 @@ export function mountFormatRouteMap(
     dragStartRotationX = rotationX;
     dragStartRotationY = rotationY;
     dragMoved = false;
-    toggleClass(map, "is-dragging", true);
-    map.setPointerCapture?.(event.pointerId);
+    isDragging = false;
   };
   const pointerMoveListener = (event: PointerEvent): void => {
     if (activePointerId !== event.pointerId) return;
     const deltaX = event.clientX - dragStartX;
     const deltaY = event.clientY - dragStartY;
-    if (Math.hypot(deltaX, deltaY) > 4) dragMoved = true;
+    if (!isDragging && shouldStartFormatGlobeDrag(deltaX, deltaY)) {
+      isDragging = true;
+      dragMoved = true;
+      toggleClass(map, "is-dragging", true);
+      map.setPointerCapture?.(event.pointerId);
+    }
+    if (!isDragging) return;
     rotationY = dragStartRotationY + deltaX * 0.48;
     rotationX = Math.max(-62, Math.min(62, dragStartRotationX - deltaY * 0.4));
     renderSurface();
@@ -531,10 +554,11 @@ export function mountFormatRouteMap(
   };
   const endPointerDrag = (event: PointerEvent): void => {
     if (activePointerId !== event.pointerId) return;
-    suppressClick = dragMoved;
+    suppressClick = isDragging && dragMoved;
     activePointerId = null;
     toggleClass(map, "is-dragging", false);
-    map.releasePointerCapture?.(event.pointerId);
+    if (isDragging) map.releasePointerCapture?.(event.pointerId);
+    isDragging = false;
     if (suppressClick) {
       document.defaultView?.setTimeout(() => { suppressClick = false; }, 0);
     }
@@ -543,6 +567,13 @@ export function mountFormatRouteMap(
   map.addEventListener("pointermove", pointerMoveListener);
   map.addEventListener("pointerup", endPointerDrag);
   map.addEventListener("pointercancel", endPointerDrag);
+  const lostPointerCaptureListener = (event: PointerEvent): void => {
+    if (activePointerId !== event.pointerId) return;
+    activePointerId = null;
+    isDragging = false;
+    toggleClass(map, "is-dragging", false);
+  };
+  map.addEventListener("lostpointercapture", lostPointerCaptureListener);
 
   const keyboardListener = (event: KeyboardEvent): void => {
     if (event.target !== map) return;
@@ -585,6 +616,7 @@ export function mountFormatRouteMap(
       map.removeEventListener("pointermove", pointerMoveListener);
       map.removeEventListener("pointerup", endPointerDrag);
       map.removeEventListener("pointercancel", endPointerDrag);
+      map.removeEventListener("lostpointercapture", lostPointerCaptureListener);
       map.removeEventListener("keydown", keyboardListener);
       document.defaultView?.removeEventListener("resize", resizeListener);
     },

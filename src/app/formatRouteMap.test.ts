@@ -5,6 +5,7 @@ import {
   FORMAT_ROUTE_NODES,
   getFormatRoute,
   projectFormatSurfacePoint,
+  shouldStartFormatGlobeDrag,
   type FormatRouteSelection,
 } from "./formatRouteMap";
 
@@ -62,6 +63,10 @@ describe("format route selection", () => {
       expect(point.leftPercent).toBeLessThanOrEqual(85);
       expect(point.topPercent).toBeGreaterThanOrEqual(15);
       expect(point.topPercent).toBeLessThanOrEqual(85);
+      expect(Math.hypot(
+        point.leftPercent - 50,
+        point.topPercent - 50,
+      )).toBeLessThanOrEqual(35);
       expect(point.depth).toBeGreaterThanOrEqual(-1);
       expect(point.depth).toBeLessThanOrEqual(1);
     }
@@ -76,5 +81,11 @@ describe("format route selection", () => {
     expect(back.isBack).toBe(true);
     expect(back.depth).toBeLessThan(0);
     expect(back.scale).toBeLessThan(front.scale);
+  });
+
+  it("keeps ordinary clicks below the globe drag threshold", () => {
+    expect(shouldStartFormatGlobeDrag(2, 3)).toBe(false);
+    expect(shouldStartFormatGlobeDrag(6, 0)).toBe(true);
+    expect(shouldStartFormatGlobeDrag(5, 4)).toBe(true);
   });
 });
