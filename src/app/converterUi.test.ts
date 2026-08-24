@@ -587,7 +587,7 @@ describe("mountConverterUi Pixil selection", () => {
     mountConverterUi(root as unknown as HTMLElement);
 
     expect(findOne(root, (element) => element.id === "converter")).toBeTruthy();
-    expect(getText(root)).toContain("Converter workspace");
+    expect(getText(root)).toContain("Conversion route map");
     expect(getText(root)).toContain("Choose the right conversion mode");
     expect(getText(root)).toContain(
       "Expected files: One or more PNG files with the same canvas size.",
@@ -607,7 +607,7 @@ describe("mountConverterUi Pixil selection", () => {
     expect(getText(root)).toContain("outside the supported subset");
   });
 
-  it("prioritizes the three-step converter flow and defers detailed guidance", () => {
+  it("prioritizes the route map and four-step converter flow", () => {
     vi.stubGlobal("HTMLImageElement", class HTMLImageElementStub {});
     const document = new UiDocumentStub();
     const root = document.createElement("main");
@@ -629,9 +629,10 @@ describe("mountConverterUi Pixil selection", () => {
       expect.stringContaining("workflow-panel-mode"),
       expect.stringContaining("workflow-panel-files"),
     ]);
-    expect(getText(converter)).toContain("1. Choose an import mode");
-    expect(getText(converter)).toContain("2. Add source files");
-    expect(getText(converter)).toContain("3. Convert and download");
+    expect(getText(converter)).toContain("Step 1 · Draw a conversion route");
+    expect(getText(converter)).toContain("2. Refine source settings");
+    expect(getText(converter)).toContain("3. Add source files");
+    expect(getText(converter)).toContain("4. Convert and download");
     expect(results.hidden).toBe(true);
     expect(getText(root)).toContain("Runs in your browser");
     expect(getText(root)).toContain("No artwork uploads");
@@ -654,6 +655,32 @@ describe("mountConverterUi Pixil selection", () => {
     );
   });
 
+  it("connects two map nodes and synchronizes the conversion controls", () => {
+    vi.stubGlobal("HTMLImageElement", class HTMLImageElementStub {});
+    const document = new UiDocumentStub();
+    const root = document.createElement("main");
+    mountConverterUi(root as unknown as HTMLElement);
+    const modeSelect = findOne(root, (element) => element.tagName === "select");
+    const gifNode = findOne(
+      root,
+      (element) => element.getAttribute("data-route-node") === "gif",
+    );
+    const asepriteNode = findOne(
+      root,
+      (element) => element.getAttribute("data-route-node") === "aseprite",
+    );
+
+    gifNode.click();
+    expect(getText(root)).toContain(
+      "Now choose Aseprite, PNG frames, or Sprite sheet as the destination.",
+    );
+    asepriteNode.click();
+
+    expect(modeSelect.value).toBe("gif");
+    expect(getText(root)).toContain("GIF to Aseprite is selected");
+    expect(getText(root)).toContain("Convert GIF animation → Aseprite");
+  });
+
   it("shows Pixil cards and keeps remove and clear behavior in sync", async () => {
     vi.stubGlobal("HTMLImageElement", class HTMLImageElementStub {});
     const document = new UiDocumentStub();
@@ -669,7 +696,7 @@ describe("mountConverterUi Pixil selection", () => {
       root,
       (element) =>
         element.tagName === "button" &&
-        element.textContent === "Start conversion",
+        element.textContent.startsWith("Convert "),
     );
 
     modeSelect.value = "pixil";
@@ -759,7 +786,7 @@ describe("mountConverterUi Pixil selection", () => {
       root,
       (element) =>
         element.tagName === "button" &&
-        element.textContent === "Start conversion",
+        element.textContent.startsWith("Convert "),
     );
     const downloadButton = findOne(
       root,
@@ -812,7 +839,7 @@ describe("mountConverterUi Pixil selection", () => {
       root,
       (element) =>
         element.tagName === "button" &&
-        element.textContent === "Start conversion",
+        element.textContent.startsWith("Convert "),
     );
     const privateContents = '{"private pixels":"do not display"';
 

@@ -193,6 +193,27 @@ describe("bindExportDownloadControl", () => {
 });
 
 describe("mountExportDownloadUi", () => {
+  it("synchronizes a route-selected output with the format selector", () => {
+    const document = new DocumentStub();
+    const container = document.createElement("main");
+    const onFormatChange = vi.fn();
+    const control = mountExportDownloadUi(
+      container as unknown as HTMLElement,
+      undefined,
+      { onFormatChange },
+    );
+    const section = container.children[0];
+    const formatSelect = section.children[1].children[0];
+    const note = section.children[4];
+
+    expect(formatSelect.value).toBe("aseprite");
+    expect(onFormatChange).toHaveBeenLastCalledWith("aseprite");
+    control.setFormat("spritesheet");
+    expect(formatSelect.value).toBe("spritesheet");
+    expect(note.textContent).toContain("row-major PNG sheet plus JSON");
+    expect(onFormatChange).toHaveBeenLastCalledWith("spritesheet");
+  });
+
   it("revokes partial object URLs and removes partial links when preparation fails", () => {
     const document = new DocumentStub();
     const container = document.createElement("main");

@@ -41,7 +41,10 @@ import {
   getSpritesheetJsonImportDiagnostic,
   importSpritesheetJson,
 } from "../core/importers/spritesheetJson";
-import { mountExportDownloadUi } from "./exportDownload";
+import {
+  mountExportDownloadUi,
+  type OutputFormat,
+} from "./exportDownload";
 import {
   bindFileImportControl,
   createSourcePreviewUrlStore,
@@ -51,6 +54,10 @@ import {
   type FileImportDependencies,
   type FileImportFormat,
 } from "./fileImport";
+import {
+  mountFormatRouteMap,
+  type FormatRouteMapControl,
+} from "./formatRouteMap";
 import { mountLayerNamingUi } from "./layerNaming";
 import {
   renderLargeFileWarning,
@@ -994,16 +1001,18 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const converterHeader = document.createElement("div");
   const converterHeading = document.createElement("h2");
   const converterIntro = document.createElement("p");
+  const routeMapContainer = document.createElement("div");
   const workflowGrid = document.createElement("div");
   converterSection.id = "converter";
   converterSection.className = "converter-workspace-section";
   converterSection.setAttribute("aria-labelledby", "converter-heading");
   converterHeading.id = "converter-heading";
-  converterHeading.textContent = "Converter workspace";
+  converterHeading.textContent = "Conversion route map";
   converterHeader.className = "converter-section-header";
   converterIntro.textContent =
-    "Pick an input mode, add the required files, review the normalized project, then choose Aseprite, PNG sequence, or spritesheet output.";
+    "Connect a source file format to a supported destination, then add files and convert along that route.";
   converterHeader.append(converterHeading, converterIntro);
+  routeMapContainer.className = "format-route-container";
   workflowGrid.className = "workflow-grid";
 
   const controls = document.createElement("section");
@@ -1016,8 +1025,8 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const modeHelpPreserves = document.createElement("p");
   const modeHelpLimitations = document.createElement("p");
   controls.className = "panel workflow-panel workflow-panel-mode";
-  controlsHeading.textContent = "1. Choose an import mode";
-  modeLabel.textContent = "Import mode";
+  controlsHeading.textContent = "2. Refine source settings";
+  modeLabel.textContent = "Source import mode";
   for (const [value, label] of Object.entries(MODE_LABELS)) {
     const option = document.createElement("option");
     option.value = value;
@@ -1127,7 +1136,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const selectedFileList = document.createElement("ul");
   const clearFilesButton = document.createElement("button");
   importPanel.className = "panel workflow-panel workflow-panel-files";
-  importHeading.textContent = "2. Add source files";
+  importHeading.textContent = "3. Add source files";
   dropZone.className = "drop-zone";
   dropInstructions.textContent =
     getImportDropInstructions("png-sequence");
@@ -1174,7 +1183,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const conversionStatus = document.createElement("p");
   const conversionError = document.createElement("p");
   convertPanel.className = "panel workflow-panel workflow-panel-convert";
-  convertHeading.textContent = "3. Convert and download";
+  convertHeading.textContent = "4. Convert and download";
   convertButton.type = "button";
   convertButton.textContent = "Start conversion";
   convertButton.disabled = true;
@@ -1213,7 +1222,13 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   workspace.append(previewContainer, layerContainer);
   convertPanel.append(exportContainer);
   workflowGrid.append(controls, importPanel);
-  converterSection.append(converterHeader, workflowGrid, convertPanel, workspace);
+  converterSection.append(
+    converterHeader,
+    routeMapContainer,
+    workflowGrid,
+    convertPanel,
+    workspace,
+  );
   const footerNavigation = document.createElement("nav");
   footerNavigation.className = "footer-nav";
   footerNavigation.setAttribute("aria-label", "Footer links");
@@ -1239,6 +1254,8 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   );
 
   let mode: FileImportFormat = "png-sequence";
+  let selectedOutput: OutputFormat = "aseprite";
+  let routeMap: FormatRouteMapControl | null = null;
   let selectedFiles: readonly BrowserSourceFile[] = [];
   let conversionRequest = 0;
   let isConverting = false;
@@ -1251,26 +1268,43 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const gridUpdateGuard = createGridUpdateGuard();
   const previewUrls = createSourcePreviewUrlStore();
 
+  const sourceControls: Array<
+    HTMLButtonElement | HTMLInputElement | HTMLSelectElement
+  > = [
+    modeSelect,
+    fileInput,
+    frameWidth.input,
+    frameHeight.input,
+    rows.input,
+    columns.input,
+    frameOrder,
+    clearFilesButton,
+  ];
   const conversionElements: ConversionUiElements = {
     activityControl: convertButton,
     progress: conversionProgress,
     status: conversionStatus,
     error: conversionError,
-    sourceControls: [
-      modeSelect,
-      fileInput,
-      frameWidth.input,
-      frameHeight.input,
-      rows.input,
-      columns.input,
-      frameOrder,
-      clearFilesButton,
-    ],
+    sourceControls,
     dropZone,
     convertButton,
   };
 
-  const exportUi = mountExportDownloadUi(exportContainer);
+  const outputLabels: Record<OutputFormat, string> = {
+    aseprite: "Aseprite",
+    "png-sequence": "PNG frames",
+    spritesheet: "Sprite sheet",
+  };
+  const updateConvertButtonLabel = (): void => {
+    convertButton.textContent = `Convert ${MODE_LABELS[mode]} → ${outputLabels[selectedOutput]}`;
+  };
+  const exportUi = mountExportDownloadUi(exportContainer, undefined, {
+    onFormatChange(format): void {
+      selectedOutput = format;
+      routeMap?.setTarget(format);
+      updateConvertButtonLabel();
+    },
+  });
   exportUi.element.hidden = true;
 
   const syncProject = (project: SpriteProject | null): void => {
@@ -1592,6 +1626,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   const handleModeChange = (): void => {
     invalidateConversion();
     mode = modeSelect.value as FileImportFormat;
+    routeMap?.setSource(mode);
     fileImportDependencies.format = mode;
     const help = getModeHelp(mode);
     modeHelpExpected.textContent = `Expected files: ${help.expectedFiles}`;
@@ -1601,6 +1636,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     fileInput.multiple =
       mode === "png-sequence" || mode === "spritesheet-json";
     dropInstructions.textContent = getImportDropInstructions(mode);
+    updateConvertButtonLabel();
     renderSelectedFiles();
     syncGridSource();
     updateReadiness();
@@ -1718,6 +1754,17 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     }
   };
 
+  routeMap = mountFormatRouteMap(routeMapContainer, {
+    initialSource: mode,
+    initialTarget: selectedOutput,
+    onRouteSelected(sourceMode, outputFormat): void {
+      modeSelect.value = sourceMode;
+      handleModeChange();
+      exportUi.setFormat(outputFormat);
+    },
+  });
+  sourceControls.push(...routeMap.controls);
+
   modeSelect.addEventListener("change", handleModeChange);
   frameWidth.input.addEventListener("input", handleFrameSizeInput);
   frameHeight.input.addEventListener("input", handleFrameSizeInput);
@@ -1749,6 +1796,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
       previewUi.destroy();
       layerUi.destroy();
       exportUi.destroy();
+      routeMap?.destroy();
       root.replaceChildren();
     },
   };

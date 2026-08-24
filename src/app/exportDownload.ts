@@ -11,6 +11,8 @@ import { isValidSpriteProject } from "../core/validation";
 const DEFAULT_FILENAME = "sprite-project.aseprite";
 const EXPORT_ERROR_PREFIX = "Could not export the Aseprite file.";
 
+export type OutputFormat = "aseprite" | "png-sequence" | "spritesheet";
+
 type DownloadLink = Pick<HTMLAnchorElement, "click" | "download" | "href">;
 
 export type ExportDownloadDependencies = {
@@ -19,6 +21,7 @@ export type ExportDownloadDependencies = {
   exportProject?: (project: SpriteProject) => Uint8Array;
   exportPngSequence?: typeof exportPngSequence;
   exportSpritesheet?: typeof exportSpritesheet;
+  onFormatChange?: (format: OutputFormat) => void;
   revokeObjectUrl?: (url: string) => void;
 };
 
@@ -31,6 +34,7 @@ export type ExportDownloadControl = {
 
 export type ExportDownloadUi = ExportDownloadControl & {
   element: HTMLElement;
+  setFormat(format: OutputFormat): void;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -195,7 +199,7 @@ export function mountExportDownloadUi(
 
   const syncFormat = (): void => {
     clearDownloads();
-    const format = formatSelect.value;
+    const format = formatSelect.value as OutputFormat;
     columnsLabel.hidden = format !== "spritesheet";
     note.textContent =
       format === "aseprite"
@@ -203,6 +207,7 @@ export function mountExportDownloadUi(
         : format === "png-sequence"
           ? "Creates one flattened PNG per frame. Layer structure, timing, and frame tags are not stored in PNG files."
           : "Creates one flattened row-major PNG sheet plus JSON with frame rectangles, durations, and frame tags.";
+    dependencies.onFormatChange?.(format);
   };
 
   const prepareFiles = (): ExportedFile[] => {
@@ -283,6 +288,11 @@ export function mountExportDownloadUi(
     setFilenameStem(filenameStem: string): void {
       filenameInput.value = sanitizeFilenameStem(filenameStem);
       clearDownloads();
+    },
+    setFormat(format: OutputFormat): void {
+      if (formatSelect.value === format) return;
+      formatSelect.value = format;
+      syncFormat();
     },
     setProject(project: unknown): void {
       clearDownloads();

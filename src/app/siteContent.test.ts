@@ -157,6 +157,7 @@ const AD_LABEL_PATTERN = /\b(advertisement|advertising|sponsored)\b/i;
 const PROHIBITED_REGION_CLASSES = new Set([
   "drop-zone",
   "download-area",
+  "format-route-panel",
   "memory-warning",
   "selected-files",
   "selected-file-card",
@@ -209,9 +210,10 @@ function isProhibitedAdRegion(element: ElementStub): boolean {
     element.id === "support" ||
     element.getAttribute("role") === "alert" ||
     (element.tagName === "input" && element.type === "file") ||
-    (element.tagName === "button" &&
-      ["Clear selected files", "Start conversion", "Prepare downloads"]
-        .includes(getText(element))) ||
+    (element.tagName === "button" && (
+      ["Clear selected files", "Prepare downloads"].includes(getText(element)) ||
+      getText(element).startsWith("Convert ")
+    )) ||
     labelValue === "Converted file export"
   );
 }
@@ -219,8 +221,8 @@ function isProhibitedAdRegion(element: ElementStub): boolean {
 function getProhibitedAdRegions(root: ElementStub): ElementStub[] {
   const regions = [
     ...findAll(root, isProhibitedAdRegion),
-    findSectionByHeading(root, "2. Add source files"),
-    findSectionByHeading(root, "3. Convert and download"),
+    findSectionByHeading(root, "3. Add source files"),
+    findSectionByHeading(root, "4. Convert and download"),
   ];
   return [...new Set(regions)];
 }
@@ -364,7 +366,7 @@ describe("AdSense readiness site content", () => {
       ),
     ).toBe(true);
     expect(
-      prohibitedRegions.some((element) => getText(element) === "Start conversion"),
+      prohibitedRegions.some((element) => getText(element).startsWith("Convert ")),
     ).toBe(true);
     expect(
       prohibitedRegions.some((element) => hasClass(element, "download-area")),
