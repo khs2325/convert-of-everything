@@ -208,6 +208,7 @@ class UiElementStub {
   max = "";
   min = "";
   multiple = false;
+  placeholder = "";
   rel = "";
   required = false;
   src = "";
@@ -596,7 +597,7 @@ describe("mountConverterUi Pixil selection", () => {
       "Flat PNG files do not contain original source layers.",
     );
 
-    const modeSelect = findOne(root, (element) => element.tagName === "select");
+    const modeSelect = findOne(root, (element) => element.id === "source-import-mode");
     modeSelect.value = "psd";
     trigger(modeSelect, "change");
 
@@ -660,7 +661,7 @@ describe("mountConverterUi Pixil selection", () => {
     const document = new UiDocumentStub();
     const root = document.createElement("main");
     mountConverterUi(root as unknown as HTMLElement);
-    const modeSelect = findOne(root, (element) => element.tagName === "select");
+    const modeSelect = findOne(root, (element) => element.id === "source-import-mode");
     const gifNode = findOne(
       root,
       (element) => element.getAttribute("data-route-node") === "gif",
@@ -681,13 +682,47 @@ describe("mountConverterUi Pixil selection", () => {
     expect(getText(root)).toContain("Convert GIF animation → Aseprite");
   });
 
+  it("finds a hidden surface format by search and completes the route by dropdown", () => {
+    vi.stubGlobal("HTMLImageElement", class HTMLImageElementStub {});
+    const document = new UiDocumentStub();
+    const root = document.createElement("main");
+    mountConverterUi(root as unknown as HTMLElement);
+    const modeSelect = findOne(root, (element) => element.id === "source-import-mode");
+    const searchInput = findOne(
+      root,
+      (element) => element.tagName === "input" && element.placeholder.startsWith("Search PNG"),
+    );
+    const photoshopResult = findOne(
+      root,
+      (element) => element.className === "format-route-search-result" && getText(element).includes("Photoshop"),
+    );
+    const outputSelect = findOne(
+      root,
+      (element) => element.getAttribute("aria-label") === "Output format",
+    );
+
+    searchInput.value = "psd";
+    trigger(searchInput, "input");
+    expect(photoshopResult.hidden).toBe(false);
+    photoshopResult.click();
+    expect(getText(root)).toContain(
+      "Now choose Aseprite, PNG frames, or Sprite sheet as the destination.",
+    );
+
+    outputSelect.value = "aseprite";
+    trigger(outputSelect, "change");
+    expect(modeSelect.value).toBe("psd");
+    expect(getText(root)).toContain("Photoshop to Aseprite is selected");
+    expect(getText(root)).toContain("Convert PSD project → Aseprite");
+  });
+
   it("shows Pixil cards and keeps remove and clear behavior in sync", async () => {
     vi.stubGlobal("HTMLImageElement", class HTMLImageElementStub {});
     const document = new UiDocumentStub();
     const root = document.createElement("main");
     mountConverterUi(root as unknown as HTMLElement);
 
-    const modeSelect = findOne(root, (element) => element.tagName === "select");
+    const modeSelect = findOne(root, (element) => element.id === "source-import-mode");
     const fileInput = findOne(
       root,
       (element) => element.tagName === "input" && element.type === "file",
@@ -777,7 +812,7 @@ describe("mountConverterUi Pixil selection", () => {
     const root = document.createElement("main");
     mountConverterUi(root as unknown as HTMLElement);
 
-    const modeSelect = findOne(root, (element) => element.tagName === "select");
+    const modeSelect = findOne(root, (element) => element.id === "source-import-mode");
     const fileInput = findOne(
       root,
       (element) => element.tagName === "input" && element.type === "file",
@@ -830,7 +865,7 @@ describe("mountConverterUi Pixil selection", () => {
     const root = document.createElement("main");
     mountConverterUi(root as unknown as HTMLElement);
 
-    const modeSelect = findOne(root, (element) => element.tagName === "select");
+    const modeSelect = findOne(root, (element) => element.id === "source-import-mode");
     const fileInput = findOne(
       root,
       (element) => element.tagName === "input" && element.type === "file",

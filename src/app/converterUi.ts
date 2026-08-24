@@ -1027,6 +1027,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   controls.className = "panel workflow-panel workflow-panel-mode";
   controlsHeading.textContent = "2. Refine source settings";
   modeLabel.textContent = "Source import mode";
+  modeSelect.id = "source-import-mode";
   for (const [value, label] of Object.entries(MODE_LABELS)) {
     const option = document.createElement("option");
     option.value = value;

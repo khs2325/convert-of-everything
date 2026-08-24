@@ -15,8 +15,21 @@ export type FormatRouteSelection = {
   targetId: string | null;
 };
 
+export type FormatSurfacePoint = {
+  depth: number;
+  isBack: boolean;
+  leftPercent: number;
+  scale: number;
+  topPercent: number;
+};
+
+type FormatRouteInteractiveControl =
+  | HTMLButtonElement
+  | HTMLInputElement
+  | HTMLSelectElement;
+
 export type FormatRouteMapControl = {
-  controls: readonly HTMLButtonElement[];
+  controls: readonly FormatRouteInteractiveControl[];
   destroy(): void;
   element: HTMLElement;
   getSelection(): FormatRouteSelection;
@@ -48,8 +61,54 @@ export const FORMAT_ROUTE_NODES: readonly FormatRouteNode[] = [
   { id: "aseprite", abbreviation: "ASE", label: "Aseprite", position: 12, sourceMode: "aseprite", outputFormat: "aseprite" },
 ] as const;
 
+const FORMAT_LATITUDES = [18, -24, 4, 32, -8, 20, -34, 2, 35, -18, -36, 0] as const;
+
 function getNode(id: string | null): FormatRouteNode | undefined {
   return FORMAT_ROUTE_NODES.find((node) => node.id === id);
+}
+
+function hasClass(element: HTMLElement, token: string): boolean {
+  return element.className.split(/\s+/).includes(token);
+}
+
+function toggleClass(element: HTMLElement, token: string, force: boolean): void {
+  const classes = new Set(element.className.split(/\s+/).filter(Boolean));
+  if (force) classes.add(token);
+  else classes.delete(token);
+  element.className = [...classes].join(" ");
+}
+
+function toRadians(degrees: number): number {
+  return degrees * Math.PI / 180;
+}
+
+export function projectFormatSurfacePoint(
+  position: number,
+  rotationXDegrees: number,
+  rotationYDegrees: number,
+): FormatSurfacePoint {
+  const nodeIndex = Math.max(0, Math.min(FORMAT_ROUTE_NODES.length - 1, position - 1));
+  const latitude = toRadians(FORMAT_LATITUDES[nodeIndex]);
+  const longitude = toRadians(nodeIndex * (360 / FORMAT_ROUTE_NODES.length));
+  const rotationX = toRadians(rotationXDegrees);
+  const rotationY = toRadians(rotationYDegrees);
+  const cosineLatitude = Math.cos(latitude);
+  const baseX = cosineLatitude * Math.sin(longitude);
+  const baseY = Math.sin(latitude);
+  const baseZ = cosineLatitude * Math.cos(longitude);
+  const rotatedX = baseX * Math.cos(rotationY) + baseZ * Math.sin(rotationY);
+  const yawedZ = -baseX * Math.sin(rotationY) + baseZ * Math.cos(rotationY);
+  const rotatedY = baseY * Math.cos(rotationX) - yawedZ * Math.sin(rotationX);
+  const depth = baseY * Math.sin(rotationX) + yawedZ * Math.cos(rotationX);
+  const normalizedDepth = (depth + 1) / 2;
+
+  return {
+    depth,
+    isBack: depth < -0.08,
+    leftPercent: 50 + rotatedX * 35,
+    scale: 0.64 + normalizedDepth * 0.36,
+    topPercent: 50 - rotatedY * 35,
+  };
 }
 
 export function advanceFormatRouteSelection(
@@ -79,6 +138,18 @@ export function getFormatRoute(
     : null;
 }
 
+function addSelectOption(
+  document: Document,
+  select: HTMLSelectElement,
+  value: string,
+  label: string,
+): void {
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = label;
+  select.append(option);
+}
+
 export function mountFormatRouteMap(
   container: HTMLElement,
   options: FormatRouteMapOptions = {},
@@ -89,13 +160,27 @@ export function mountFormatRouteMap(
   const eyebrow = document.createElement("p");
   const heading = document.createElement("h3");
   const introduction = document.createElement("p");
+  const tools = document.createElement("div");
+  const searchField = document.createElement("label");
+  const searchLabel = document.createElement("span");
+  const searchInput = document.createElement("input");
+  const searchResults = document.createElement("div");
+  const sourceField = document.createElement("label");
+  const sourceLabel = document.createElement("span");
+  const sourceSelect = document.createElement("select");
+  const targetField = document.createElement("label");
+  const targetLabel = document.createElement("span");
+  const targetSelect = document.createElement("select");
   const map = document.createElement("div");
   const globe = document.createElement("div");
+  const globeGrid = document.createElement("div");
   const routeLine = document.createElement("div");
   const hub = document.createElement("div");
   const hubKicker = document.createElement("span");
   const hubText = document.createElement("strong");
+  const dragHint = document.createElement("small");
   const nodeButtons = new Map<string, HTMLButtonElement>();
+  const searchButtons = new Map<string, HTMLButtonElement>();
   const readout = document.createElement("div");
   const from = document.createElement("div");
   const fromLabel = document.createElement("span");
@@ -113,20 +198,62 @@ export function mountFormatRouteMap(
   eyebrow.className = "format-route-eyebrow";
   eyebrow.textContent = "Step 1 · Draw a conversion route";
   heading.id = "format-route-heading";
-  heading.textContent = "Choose two file formats on the map";
+  heading.textContent = "Rotate the globe and connect two formats";
   introduction.textContent =
-    "Click a source format, then click Aseprite, PNG frames, or Sprite sheet as the destination. The arrow shows the direction of conversion.";
+    "Drag the globe to bring file formats on its surface into view. Choose a source, then a supported output. Back-side formats stay visible as compact abbreviations.";
   header.append(eyebrow, heading, introduction);
 
+  tools.className = "format-route-tools";
+  searchField.className = "format-route-tool format-route-search";
+  searchLabel.textContent = "Find a format";
+  searchInput.type = "search";
+  searchInput.placeholder = "Search PNG, GIF, PSD…";
+  searchInput.autocomplete = "off";
+  searchInput.setAttribute("aria-controls", "format-route-search-results");
+  searchResults.id = "format-route-search-results";
+  searchResults.className = "format-route-search-results";
+  searchResults.setAttribute("aria-label", "Matching file formats");
+  searchResults.hidden = true;
+  searchField.append(searchLabel, searchInput, searchResults);
+
+  sourceField.className = "format-route-tool";
+  sourceLabel.textContent = "Source";
+  sourceSelect.setAttribute("aria-label", "Source format");
+  addSelectOption(document, sourceSelect, "", "Choose source");
+  targetField.className = "format-route-tool";
+  targetLabel.textContent = "Output";
+  targetSelect.setAttribute("aria-label", "Output format");
+  addSelectOption(document, targetSelect, "", "Choose output");
+  for (const node of FORMAT_ROUTE_NODES) {
+    if (node.sourceMode !== undefined) {
+      addSelectOption(document, sourceSelect, node.id, node.label);
+    }
+    if (node.outputFormat !== undefined) {
+      addSelectOption(document, targetSelect, node.id, node.label);
+    }
+  }
+  sourceField.append(sourceLabel, sourceSelect);
+  targetField.append(targetLabel, targetSelect);
+  tools.append(searchField, sourceField, targetField);
+
   map.className = "format-route-map";
+  map.tabIndex = 0;
+  map.setAttribute("role", "group");
+  map.setAttribute(
+    "aria-label",
+    "Rotatable file format globe. Drag, or use the arrow keys while the globe is focused.",
+  );
   globe.className = "format-route-globe";
   globe.setAttribute("aria-hidden", "true");
+  globeGrid.className = "format-route-globe-grid";
+  globe.append(globeGrid);
   routeLine.className = "format-route-line";
   routeLine.setAttribute("aria-hidden", "true");
   hub.className = "format-route-hub";
-  hubKicker.textContent = "FORMAT ROUTE";
+  hubKicker.textContent = "FORMAT SURFACE";
   hubText.textContent = "Choose source";
-  hub.append(hubKicker, hubText);
+  dragHint.textContent = "Drag to rotate";
+  hub.append(hubKicker, hubText, dragHint);
   map.append(globe, routeLine, hub);
 
   for (const node of FORMAT_ROUTE_NODES) {
@@ -135,7 +262,7 @@ export function mountFormatRouteMap(
     const abbreviation = document.createElement("span");
     const label = document.createElement("span");
     button.type = "button";
-    button.className = `format-route-node format-route-node-${node.position}`;
+    button.className = "format-route-node";
     button.setAttribute("data-route-node", node.id);
     button.setAttribute("aria-label", `${node.label} file format`);
     icon.className = "format-file-icon";
@@ -147,6 +274,14 @@ export function mountFormatRouteMap(
     button.append(icon, label);
     nodeButtons.set(node.id, button);
     map.append(button);
+
+    const searchButton = document.createElement("button");
+    searchButton.type = "button";
+    searchButton.className = "format-route-search-result";
+    searchButton.textContent = `${node.label} · ${node.abbreviation}`;
+    searchButton.hidden = true;
+    searchButtons.set(node.id, searchButton);
+    searchResults.append(searchButton);
   }
 
   readout.className = "format-route-readout";
@@ -168,7 +303,7 @@ export function mountFormatRouteMap(
   resetButton.className = "format-route-reset";
   resetButton.textContent = "Clear route";
   readout.append(from, arrow, to, status, resetButton);
-  element.append(header, map, readout);
+  element.append(header, tools, map, readout);
   container.append(element);
 
   const initialSource = FORMAT_ROUTE_NODES.find(
@@ -181,6 +316,15 @@ export function mountFormatRouteMap(
     sourceId: initialSource?.id ?? null,
     targetId: initialTarget?.id ?? null,
   };
+  let rotationX = 0;
+  let rotationY = 0;
+  let activePointerId: number | null = null;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let dragStartRotationX = 0;
+  let dragStartRotationY = 0;
+  let dragMoved = false;
+  let suppressClick = false;
 
   const updateRouteLine = (): void => {
     const sourceButton = selection.sourceId === null
@@ -219,6 +363,25 @@ export function mountFormatRouteMap(
     routeLine.hidden = false;
   };
 
+  const renderSurface = (): void => {
+    for (const node of FORMAT_ROUTE_NODES) {
+      const button = nodeButtons.get(node.id)!;
+      const point = projectFormatSurfacePoint(node.position, rotationX, rotationY);
+      button.style.left = `${point.leftPercent}%`;
+      button.style.top = `${point.topPercent}%`;
+      button.style.zIndex = String(6 + Math.round((point.depth + 1) * 8));
+      const surfaceOpacity = point.isBack ? 0.42 : 0.78 + (point.depth + 1) * 0.11;
+      button.style.opacity = String(
+        hasClass(button, "is-muted") ? surfaceOpacity * 0.38 : surfaceOpacity,
+      );
+      button.style.transform = `translate(-50%, -50%) scale(${point.scale})`;
+      toggleClass(button, "is-back", point.isBack);
+      button.setAttribute("data-surface-side", point.isBack ? "back" : "front");
+    }
+    globeGrid.style.transform = `rotate(${-rotationX * 0.18}deg) translateX(${rotationY % 36}px)`;
+    updateRouteLine();
+  };
+
   const render = (): void => {
     const route = getFormatRoute(selection);
     const source = getNode(selection.sourceId);
@@ -227,16 +390,26 @@ export function mountFormatRouteMap(
       const isSource = selection.sourceId === node.id;
       const isTarget = selection.targetId === node.id;
       const awaitingTarget = selection.sourceId !== null && selection.targetId === null;
-      button.className = [
-        "format-route-node",
-        `format-route-node-${node.position}`,
-        isSource ? "is-source" : "",
-        isTarget ? "is-target" : "",
-        awaitingTarget && node.outputFormat !== undefined ? "is-target-ready" : "",
-        awaitingTarget && node.outputFormat === undefined && !isSource ? "is-muted" : "",
-      ].filter(Boolean).join(" ");
+      toggleClass(button, "is-source", isSource);
+      toggleClass(button, "is-target", isTarget);
+      toggleClass(
+        button,
+        "is-target-ready",
+        awaitingTarget && node.outputFormat !== undefined,
+      );
+      toggleClass(
+        button,
+        "is-muted",
+        awaitingTarget && node.outputFormat === undefined && !isSource,
+      );
       button.setAttribute("aria-pressed", String(isSource || isTarget));
+      searchButtons.get(node.id)!.setAttribute(
+        "aria-pressed",
+        String(isSource || isTarget),
+      );
     }
+    sourceSelect.value = selection.sourceId ?? "";
+    targetSelect.value = selection.targetId ?? "";
     fromValue.textContent = source?.label ?? "Choose a source";
     toValue.textContent = route?.target.label ?? "Choose an output";
     if (selection.sourceId === null) {
@@ -249,41 +422,170 @@ export function mountFormatRouteMap(
       hubText.textContent = "Route ready";
       status.textContent = `${route!.source.label} to ${route!.target.label} is selected. Add your source files below.`;
     }
-    updateRouteLine();
+    renderSurface();
+  };
+
+  const applySelection = (
+    next: FormatRouteSelection,
+    notify = true,
+  ): void => {
+    if (
+      next.sourceId === selection.sourceId &&
+      next.targetId === selection.targetId
+    ) return;
+    selection = next;
+    render();
+    const route = getFormatRoute(selection);
+    if (notify && route !== null) {
+      options.onRouteSelected?.(route.source.sourceMode!, route.target.outputFormat!);
+    }
+  };
+
+  const selectNode = (node: FormatRouteNode): void => {
+    applySelection(advanceFormatRouteSelection(selection, node));
   };
 
   const nodeListeners = new Map<HTMLButtonElement, () => void>();
   for (const node of FORMAT_ROUTE_NODES) {
     const button = nodeButtons.get(node.id)!;
     const listener = (): void => {
-      const next = advanceFormatRouteSelection(selection, node);
-      if (next.sourceId === selection.sourceId && next.targetId === selection.targetId) return;
-      selection = next;
-      render();
-      const route = getFormatRoute(selection);
-      if (route !== null) {
-        options.onRouteSelected?.(route.source.sourceMode!, route.target.outputFormat!);
+      if (suppressClick) {
+        suppressClick = false;
+        return;
       }
+      selectNode(node);
     };
     nodeListeners.set(button, listener);
     button.addEventListener("click", listener);
+
+    const searchButton = searchButtons.get(node.id)!;
+    const searchResultListener = (): void => {
+      selectNode(node);
+      searchInput.value = "";
+      searchResults.hidden = true;
+    };
+    nodeListeners.set(searchButton, searchResultListener);
+    searchButton.addEventListener("click", searchResultListener);
   }
+
+  const searchListener = (): void => {
+    const query = searchInput.value.trim().toLocaleLowerCase();
+    let matches = 0;
+    for (const node of FORMAT_ROUTE_NODES) {
+      const button = searchButtons.get(node.id)!;
+      const searchable = `${node.label} ${node.abbreviation} ${node.id}`.toLocaleLowerCase();
+      button.hidden = query.length === 0 || !searchable.includes(query);
+      if (!button.hidden) matches += 1;
+    }
+    searchResults.hidden = query.length === 0;
+    searchResults.setAttribute("data-result-count", String(matches));
+  };
+  searchInput.addEventListener("input", searchListener);
+
+  const sourceSelectListener = (): void => {
+    const source = getNode(sourceSelect.value);
+    applySelection(
+      source?.sourceMode === undefined
+        ? { sourceId: null, targetId: null }
+        : { sourceId: source.id, targetId: selection.targetId },
+    );
+  };
+  sourceSelect.addEventListener("change", sourceSelectListener);
+
+  const targetSelectListener = (): void => {
+    const target = getNode(targetSelect.value);
+    applySelection({
+      sourceId: selection.sourceId,
+      targetId: target?.outputFormat === undefined ? null : target.id,
+    });
+  };
+  targetSelect.addEventListener("change", targetSelectListener);
+
   const resetListener = (): void => {
-    selection = { sourceId: null, targetId: null };
-    render();
+    applySelection({ sourceId: null, targetId: null }, false);
+    searchInput.value = "";
+    searchResults.hidden = true;
   };
   resetButton.addEventListener("click", resetListener);
+
+  const pointerDownListener = (event: PointerEvent): void => {
+    if (!event.isPrimary || event.button !== 0) return;
+    activePointerId = event.pointerId;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    dragStartRotationX = rotationX;
+    dragStartRotationY = rotationY;
+    dragMoved = false;
+    toggleClass(map, "is-dragging", true);
+    map.setPointerCapture?.(event.pointerId);
+  };
+  const pointerMoveListener = (event: PointerEvent): void => {
+    if (activePointerId !== event.pointerId) return;
+    const deltaX = event.clientX - dragStartX;
+    const deltaY = event.clientY - dragStartY;
+    if (Math.hypot(deltaX, deltaY) > 4) dragMoved = true;
+    rotationY = dragStartRotationY + deltaX * 0.48;
+    rotationX = Math.max(-62, Math.min(62, dragStartRotationX - deltaY * 0.4));
+    renderSurface();
+    event.preventDefault();
+  };
+  const endPointerDrag = (event: PointerEvent): void => {
+    if (activePointerId !== event.pointerId) return;
+    suppressClick = dragMoved;
+    activePointerId = null;
+    toggleClass(map, "is-dragging", false);
+    map.releasePointerCapture?.(event.pointerId);
+    if (suppressClick) {
+      document.defaultView?.setTimeout(() => { suppressClick = false; }, 0);
+    }
+  };
+  map.addEventListener("pointerdown", pointerDownListener);
+  map.addEventListener("pointermove", pointerMoveListener);
+  map.addEventListener("pointerup", endPointerDrag);
+  map.addEventListener("pointercancel", endPointerDrag);
+
+  const keyboardListener = (event: KeyboardEvent): void => {
+    if (event.target !== map) return;
+    const step = event.shiftKey ? 24 : 12;
+    if (event.key === "ArrowLeft") rotationY -= step;
+    else if (event.key === "ArrowRight") rotationY += step;
+    else if (event.key === "ArrowUp") rotationX = Math.min(62, rotationX + step);
+    else if (event.key === "ArrowDown") rotationX = Math.max(-62, rotationX - step);
+    else if (event.key === "Home") {
+      rotationX = 0;
+      rotationY = 0;
+    } else return;
+    event.preventDefault();
+    renderSurface();
+  };
+  map.addEventListener("keydown", keyboardListener);
+
   const resizeListener = (): void => { updateRouteLine(); };
   document.defaultView?.addEventListener("resize", resizeListener);
   render();
 
   return {
-    controls: [...nodeButtons.values(), resetButton],
+    controls: [
+      ...nodeButtons.values(),
+      ...searchButtons.values(),
+      searchInput,
+      sourceSelect,
+      targetSelect,
+      resetButton,
+    ],
     destroy(): void {
       for (const [button, listener] of nodeListeners) {
         button.removeEventListener("click", listener);
       }
+      searchInput.removeEventListener("input", searchListener);
+      sourceSelect.removeEventListener("change", sourceSelectListener);
+      targetSelect.removeEventListener("change", targetSelectListener);
       resetButton.removeEventListener("click", resetListener);
+      map.removeEventListener("pointerdown", pointerDownListener);
+      map.removeEventListener("pointermove", pointerMoveListener);
+      map.removeEventListener("pointerup", endPointerDrag);
+      map.removeEventListener("pointercancel", endPointerDrag);
+      map.removeEventListener("keydown", keyboardListener);
       document.defaultView?.removeEventListener("resize", resizeListener);
     },
     element,
@@ -292,15 +594,13 @@ export function mountFormatRouteMap(
     },
     setSource(mode: FileImportFormat): void {
       const source = FORMAT_ROUTE_NODES.find((node) => node.sourceMode === mode);
-      if (source === undefined || selection.sourceId === source.id) return;
-      selection = { ...selection, sourceId: source.id };
-      render();
+      if (source === undefined) return;
+      applySelection({ ...selection, sourceId: source.id }, false);
     },
     setTarget(format: OutputFormat): void {
       const target = FORMAT_ROUTE_NODES.find((node) => node.outputFormat === format);
-      if (target === undefined || selection.targetId === target.id) return;
-      selection = { ...selection, targetId: target.id };
-      render();
+      if (target === undefined) return;
+      applySelection({ ...selection, targetId: target.id }, false);
     },
   };
 }
