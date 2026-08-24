@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   advanceFormatRouteSelection,
   FORMAT_ROUTE_NODES,
+  getFormatSurfacePresentation,
   getFormatRoute,
   projectFormatSurfacePoint,
   shouldStartFormatGlobeDrag,
@@ -90,6 +91,20 @@ describe("format route selection", () => {
     expect(back.isBack).toBe(true);
     expect(back.depth).toBeLessThan(0);
     expect(back.scale).toBeLessThan(front.scale);
+  });
+
+  it("keeps the original front highlight depth while lifting a selected back format", () => {
+    const front = projectFormatSurfacePoint(1, 0, 0);
+    const back = projectFormatSurfacePoint(1, 0, 180);
+
+    expect(getFormatSurfacePresentation(front, true, false)).toEqual(
+      getFormatSurfacePresentation(front, false, false),
+    );
+    expect(getFormatSurfacePresentation(back, true, false)).toEqual({
+      opacity: 1,
+      zIndex: 22,
+    });
+    expect(getFormatSurfacePresentation(back, false, false).opacity).toBe(0.42);
   });
 
   it("keeps ordinary clicks below the globe drag threshold", () => {

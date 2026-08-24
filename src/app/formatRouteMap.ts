@@ -24,6 +24,11 @@ export type FormatSurfacePoint = {
   topPercent: number;
 };
 
+export type FormatSurfacePresentation = {
+  opacity: number;
+  zIndex: number;
+};
+
 type FormatRouteInteractiveControl =
   | HTMLButtonElement
   | HTMLInputElement
@@ -117,6 +122,23 @@ export function projectFormatSurfacePoint(
     leftPercent: 50 + rotatedX * 35,
     scale: 0.64 + normalizedDepth * 0.36,
     topPercent: 50 - rotatedY * 35,
+  };
+}
+
+export function getFormatSurfacePresentation(
+  point: FormatSurfacePoint,
+  isSelected: boolean,
+  isMuted: boolean,
+): FormatSurfacePresentation {
+  const isSelectedBack = point.isBack && isSelected;
+  const surfaceOpacity = point.isBack ? 0.42 : 0.78 + (point.depth + 1) * 0.11;
+  return {
+    opacity: isSelectedBack ? 1 : isMuted ? surfaceOpacity * 0.38 : surfaceOpacity,
+    zIndex: isSelectedBack
+      ? 22
+      : point.isBack
+        ? 2 + Math.round((point.depth + 1) * 3)
+        : 10 + Math.round(point.depth * 8),
   };
 }
 
@@ -380,24 +402,18 @@ export function mountFormatRouteMap(
     for (const node of FORMAT_ROUTE_NODES) {
       const button = nodeButtons.get(node.id)!;
       const point = projectFormatSurfacePoint(node.position, rotationX, rotationY);
-      const isSelected = hasClass(button, "is-source") || hasClass(button, "is-target");
+      const isSelected = (
+        hasClass(button, "is-source") || hasClass(button, "is-target")
+      );
+      const presentation = getFormatSurfacePresentation(
+        point,
+        isSelected,
+        hasClass(button, "is-muted"),
+      );
       button.style.left = `${point.leftPercent}%`;
       button.style.top = `${point.topPercent}%`;
-      button.style.zIndex = String(
-        isSelected
-          ? 22
-          : point.isBack
-          ? 2 + Math.round((point.depth + 1) * 3)
-          : 10 + Math.round(point.depth * 8),
-      );
-      const surfaceOpacity = point.isBack ? 0.42 : 0.78 + (point.depth + 1) * 0.11;
-      button.style.opacity = String(
-        isSelected
-          ? 1
-          : hasClass(button, "is-muted")
-            ? surfaceOpacity * 0.38
-            : surfaceOpacity,
-      );
+      button.style.zIndex = String(presentation.zIndex);
+      button.style.opacity = String(presentation.opacity);
       button.style.transform = `translate(-50%, -50%) scale(${point.scale})`;
       toggleClass(button, "is-back", point.isBack);
       button.setAttribute("data-surface-side", point.isBack ? "back" : "front");
