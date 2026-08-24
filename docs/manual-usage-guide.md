@@ -46,7 +46,8 @@ the server with `Ctrl+C`.
 
 ## Common conversion workflow
 
-1. Under **Choose an import mode**, select the mode matching the source files.
+1. On the **Conversion route map**, click the source format and then the desired
+   output. Use **Refine source settings** when the source has multiple variants.
 2. Under **Add source files**, drag the required files onto the drop area or
    use the file picker. The app accepts `.png`, `.json`, `.piskel`, `.gif`,
    `.apng`, `.ora`, `.pxo`, `.pixil`, `.kra`, and `.psd` files. Each conversion
@@ -272,7 +273,7 @@ displaying source JSON, frame-map keys, source filenames, or stack traces.
 Use this mode for one `.piskel` file that matches the
 [supported Piskel subset](piskel-format.md).
 
-1. Select **Piskel project** under **Choose an import mode**.
+1. Connect **Piskel** to the desired output on the route map.
 2. Add exactly one `.piskel` file. Do not add PNG or JSON files separately;
    supported Piskel files contain their layer images as embedded PNG data.
 3. Confirm that the app reports the Piskel file is ready, then select
@@ -323,7 +324,7 @@ not claimed to be universal, perfect, or lossless.
 OpenRaster import follows the
 [documented supported OpenRaster subset](openraster-format.md).
 
-1. Select **OpenRaster project** under **Choose an import mode**.
+1. Connect **OpenRaster** to the desired output on the route map.
 2. Choose exactly one `.ora` file.
 3. Review the document-style file card, then select
    **Convert to .aseprite**. ZIP parsing, PNG layer decoding, validation, and
@@ -344,7 +345,7 @@ safe diagnostic that does not display raw source contents or stack traces.
 Pixelorama import follows the
 [documented supported Pixelorama subset](pixelorama-format.md).
 
-1. Select **Pixelorama project** under **Choose an import mode**.
+1. Connect **Pixelorama** to the desired output on the route map.
 2. Choose exactly one `.pxo` file.
 3. Review the document-style file card, then select
    **Convert to .aseprite**. ZIP parsing, JSON validation, raw cel reading, and
@@ -386,7 +387,7 @@ in [the format documentation](pixil-format.md).
 Krita import follows the
 [documented minimal Krita raster subset](krita-format.md).
 
-1. Select **Krita project** under **Choose an import mode**.
+1. Connect **Krita** to the desired output on the route map.
 2. Choose exactly one `.kra` file from the documented minimal raster subset.
 3. Review the document-style file card, then select
    **Convert to .aseprite**. ZIP parsing, maindoc validation, native paint-layer
@@ -407,7 +408,7 @@ safe diagnostic that does not display raw source contents or stack traces.
 
 PSD import follows the [documented supported PSD subset](psd-format.md).
 
-1. Select **PSD project** under **Choose an import mode**.
+1. Connect **Photoshop** to the desired output on the route map.
 2. Choose exactly one `.psd` file from the RGB 8-bit raster-layer subset.
 3. Review the document-style file card, then select
    **Convert to .aseprite**. PSD parsing, raster-layer decoding, validation,
@@ -434,7 +435,7 @@ output as preserved source layers.
 
 GIF import follows the [documented supported GIF subset](gif-format.md).
 
-1. Select **GIF animation** under **Choose an import mode**.
+1. Connect **GIF** to the desired output on the route map.
 2. Choose exactly one `.gif` file.
 3. Review the document-style file card, then select
    **Convert to .aseprite**.
@@ -451,7 +452,7 @@ claiming layer preservation.
 
 APNG import follows the [documented supported APNG subset](apng-format.md).
 
-1. Select **APNG animation** under **Choose an import mode**.
+1. Connect **APNG** to the desired output on the route map.
 2. Choose exactly one `.apng` file or one animated `.png` file.
 3. Review the selected file card, then select **Convert to .aseprite**.
 4. Confirm the reported frame count and inspect timing, offsets, alpha blending,
