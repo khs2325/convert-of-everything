@@ -131,7 +131,9 @@ export function getFormatSurfacePresentation(
   isMuted: boolean,
 ): FormatSurfacePresentation {
   const isSelectedBack = point.isBack && isSelected;
-  const surfaceOpacity = point.isBack ? 0.42 : 0.78 + (point.depth + 1) * 0.11;
+  const surfaceOpacity = point.isBack
+    ? isMuted ? 0.42 : 0.72
+    : 0.78 + (point.depth + 1) * 0.11;
   return {
     opacity: isSelectedBack ? 1 : isMuted ? surfaceOpacity * 0.38 : surfaceOpacity,
     zIndex: isSelectedBack

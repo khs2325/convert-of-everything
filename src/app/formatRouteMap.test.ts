@@ -104,7 +104,8 @@ describe("format route selection", () => {
       opacity: 1,
       zIndex: 22,
     });
-    expect(getFormatSurfacePresentation(back, false, false).opacity).toBe(0.42);
+    expect(getFormatSurfacePresentation(back, false, false).opacity).toBe(0.72);
+    expect(getFormatSurfacePresentation(back, false, true).opacity).toBeCloseTo(0.1596);
   });
 
   it("keeps ordinary clicks below the globe drag threshold", () => {

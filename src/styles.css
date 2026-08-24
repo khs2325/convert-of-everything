@@ -1476,16 +1476,20 @@ td {
   font-size: 0.52rem;
 }
 
-.format-route-node.is-back:not(.is-muted) .format-file-icon {
-  border-color: rgba(152, 232, 222, 0.82);
+.format-route-node.is-back:not(.is-muted):not(.is-source):not(.is-target) .format-file-icon {
+  border-color: #fff;
   box-shadow:
-    0 0 0 0.16rem rgba(152, 232, 222, 0.15),
-    0 0 1rem rgba(152, 232, 222, 0.42);
+    0 0 0 0.22rem rgba(152, 232, 222, 0.32),
+    0 0 1.6rem 0.22rem rgba(152, 232, 222, 0.68);
 }
 
 .format-route-node.is-back .format-file-icon.has-official-logo {
   border-color: transparent;
   background: transparent;
+}
+
+.format-route-node.is-back:not(.is-muted):not(.is-source):not(.is-target) .format-file-icon.has-official-logo {
+  border-color: #fff;
 }
 
 .format-route-node.is-back:is(.is-source, .is-target) .format-file-icon {
@@ -1550,6 +1554,17 @@ td {
   animation: target-ready-pulse 1.6s ease-in-out infinite;
 }
 
+.format-route-node.is-back:not(.is-muted):not(.is-source):not(.is-target) .format-file-icon {
+  animation: back-selectable-pulse 1.45s ease-in-out infinite;
+}
+
+.format-route-node.is-back:not(.is-muted):not(.is-source):not(.is-target):is(:hover, :focus-visible) .format-file-icon {
+  border-color: #fff;
+  box-shadow:
+    0 0 0 0.32rem rgba(152, 232, 222, 0.5),
+    0 0 2.1rem 0.42rem rgba(152, 232, 222, 0.92);
+}
+
 .format-route-node.is-muted {
   opacity: 0.34;
 }
@@ -1606,6 +1621,19 @@ td {
 @keyframes target-ready-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(152, 232, 222, 0.32); }
   50% { box-shadow: 0 0 0 0.42rem rgba(152, 232, 222, 0.05); }
+}
+
+@keyframes back-selectable-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 0.16rem rgba(152, 232, 222, 0.24),
+      0 0 1.15rem 0.12rem rgba(152, 232, 222, 0.48);
+  }
+  50% {
+    box-shadow:
+      0 0 0 0.28rem rgba(152, 232, 222, 0.4),
+      0 0 1.9rem 0.35rem rgba(152, 232, 222, 0.82);
+  }
 }
 
 @keyframes back-selected-format-pulse {
@@ -1674,6 +1702,7 @@ td {
   .format-route-node,
   .format-route-globe-grid,
   .format-file-icon,
+  .format-route-node.is-back:not(.is-muted):not(.is-source):not(.is-target) .format-file-icon,
   .format-route-node.is-back:is(.is-source, .is-target),
   .format-route-node.is-target-ready .format-file-icon {
     animation: none;
