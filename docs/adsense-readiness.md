@@ -20,7 +20,9 @@ equivalent guidance instead of replacing it with controls alone.
 ## Public architecture
 
 `site/page-manifest.json` is the single indexable-page list. It drives Vite
-multi-page inputs and both sitemaps. Long-form pages are generated as real
+multi-page inputs and both sitemaps. Each manifest entry carries an accurate
+ISO `lastModified` date used by the XML sitemap and page structured data.
+Long-form pages are generated as real
 directory-index HTML, so their headings and prose are present without running
 the converter application.
 
@@ -36,8 +38,16 @@ Before requesting review, deploy and directly refresh at least:
 - `/terms/`.
 
 Every indexable page must have its own title, description, canonical URL, H1,
-useful body, and ordinary internal links. Automated production-build tests
-check these properties and compare the sitemap with built files.
+useful body, ordinary internal links, explicit crawl directives, authorship,
+and parseable schema.org data. Automated production-build tests check these
+properties and compare the sitemap with built files.
+
+Search discovery is a separate release gate. A successful local build does not
+prove that Google has discovered the deployment. After production is current,
+confirm that `sitemap.xml` returns `200`, re-submit it in the verified Search
+Console property, and monitor the sitemap and Page indexing reports. Request
+indexing only for representative high-value URLs rather than repeatedly
+submitting every page.
 
 Cloudflare Pages must also return the top-level `404.html` with an HTTP 404 for
 unknown paths. Without that file, Pages can treat this build as an SPA and
@@ -86,3 +96,10 @@ outside:
 
 Ads must never resemble a converter action or encourage clicks. Re-run the
 DOM and built-HTML safety tests after any advertising change.
+
+Before live AdSense ad requests are enabled, configure a Google-certified
+consent management platform for visitors in the EEA, United Kingdom, and
+Switzerland. The deployed privacy policy must link to Google's explanation of
+partner-site data use and describe the actual advertising and consent behavior.
+Do not display a consent banner that implies advertising cookies are active
+while the site contains verification metadata only.

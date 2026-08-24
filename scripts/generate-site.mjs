@@ -24,7 +24,13 @@ export async function generateSite() {
   }
 
   const urls = manifest.map((page) => `${ORIGIN}${page.route}`);
-  const sitemap = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', ...urls.map((url) => `  <url><loc>${url}</loc></url>`), "</urlset>", ""].join("\n");
+  const sitemapEntries = manifest.map((page, index) => {
+    const lastModified = page.lastModified
+      ? `<lastmod>${page.lastModified}</lastmod>`
+      : "";
+    return `  <url><loc>${urls[index]}</loc>${lastModified}</url>`;
+  });
+  const sitemap = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', ...sitemapEntries, "</urlset>", ""].join("\n");
   await writeFile(path.join(ROOT, "public", "sitemap.xml"), sitemap, "utf8");
   await writeFile(path.join(ROOT, "public", "sitemap.txt"), `${urls.join("\n")}\n`, "utf8");
 }

@@ -35,7 +35,12 @@ approval.
 - [ ] Long-form text appears directly in built HTML without converter
   JavaScript execution.
 - [ ] `sitemap.xml` contains every intended indexable route and no missing
-  route; `robots.txt` points to it.
+  route, includes accurate `lastmod` values, and `robots.txt` points to it.
+- [ ] The verified Search Console property shows a successful current sitemap
+  fetch; investigate a stale “couldn't fetch” result before requesting review.
+- [ ] Representative converter, guide, article, evidence, and policy URLs are
+  discoverable in the Page indexing report or have been submitted once through
+  URL inspection.
 - [ ] An arbitrary unknown production path returns the branded `404.html` with
   HTTP 404, `noindex`, and no homepage canonical.
 - [ ] `/ads.txt` returns `text/plain` with the publisher record from the
@@ -55,6 +60,8 @@ approval.
   resource requests and external links.
 - [ ] Privacy accurately reflects the deployed status of ads, analytics,
   tracking, error reporting, and payments.
+- [ ] Privacy links to Google's partner-site data-use explanation and states
+  what browsers may share only if Google advertising is later enabled.
 - [ ] Terms avoid guarantees of availability, compatibility, or recovery.
 - [ ] Optional support remains voluntary and unlocks no hidden functionality.
 
@@ -77,6 +84,8 @@ approval.
   actually deployed and the privacy policy has been reviewed.
 - [ ] No fake ad, placeholder, simulated unit, click prompt, fake traffic, or
   misleading sponsored content exists.
+- [ ] Before live ad requests, a Google-certified CMP is configured for the
+  EEA, United Kingdom, and Switzerland; do not claim one is active before it is.
 - [ ] Any future ad remains visually and structurally separate from selection,
   conversion, errors, downloads, private-file data, and support links.
 

@@ -63,7 +63,9 @@ describe("static multi-page site", () => {
     const titles = await Promise.all(
       manifest.map(async (page) => {
         const html = await readBuiltPage(page);
-        return matchAll(html, /<title>([^<]+)<\/title>/giu)[0]?.trim();
+        const title = matchAll(html, /<title>([^<]+)<\/title>/giu)[0]?.trim();
+        expect(title).toBe(page.title);
+        return title;
       }),
     );
 
@@ -97,6 +99,35 @@ describe("static multi-page site", () => {
     }
   });
 
+  it("publishes crawl directives, authorship, and parseable structured data", async () => {
+    for (const page of manifest) {
+      const html = await readBuiltPage(page);
+      expect(html).toContain('<meta name="author" content="khs2325"');
+      expect(html).toContain(
+        '<meta name="robots" content="index, follow, max-image-preview:large"',
+      );
+      const json = matchAll(
+        html,
+        /<script\s+type="application\/ld\+json">([\s\S]*?)<\/script>/giu,
+      );
+      expect(json).toHaveLength(1);
+      const data = JSON.parse(json[0]) as {
+        ["@context"]: string;
+        author: { name: string };
+        dateModified: string;
+        description: string;
+        url: string;
+      };
+      expect(data).toMatchObject({
+        "@context": "https://schema.org",
+        author: { name: "khs2325" },
+        dateModified: page.lastModified,
+        description: page.description,
+        url: `${ORIGIN}${page.route}`,
+      });
+    }
+  });
+
   it("puts meaningful headings and prose directly in built HTML", async () => {
     for (const page of manifest) {
       const html = await readBuiltPage(page);
@@ -112,9 +143,11 @@ describe("static multi-page site", () => {
   it("keeps the sitemap exactly aligned with existing indexable routes", async () => {
     const sitemap = await readFile(path.join(OUT_DIR, "sitemap.xml"), "utf8");
     const locations = matchAll(sitemap, /<loc>([^<]+)<\/loc>/giu);
+    const lastModified = matchAll(sitemap, /<lastmod>([^<]+)<\/lastmod>/giu);
     const expected = manifest.map((page) => `${ORIGIN}${page.route}`);
 
     expect(locations).toEqual(expected);
+    expect(lastModified).toEqual(manifest.map((page) => page.lastModified));
     for (const location of locations) {
       const route = new URL(location).pathname;
       await expect(readFile(routeFile(OUT_DIR, route), "utf8")).resolves.toContain("<html");
@@ -145,6 +178,27 @@ describe("static multi-page site", () => {
       const html = await readBuiltPage(page);
       for (const route of required) expect(html).toContain(`href="${route}"`);
     }
+  });
+
+  it("publishes a substantial original conversion verification article", async () => {
+    const html = await readBuiltPage({
+      ...manifest.find((page) => page.route === "/articles/verify-sprite-conversion/")!,
+    });
+    const words = stripHtml(html).match(/[A-Za-z0-9][A-Za-z0-9'’-]*/gu) ?? [];
+
+    expect(words.length).toBeGreaterThan(850);
+    expect(html).toContain("Separate visual equivalence from editability");
+    expect(html).toContain("Test boundaries as well as success");
+    expect(html).toContain('href="/compatibility-lab/"');
+  });
+
+  it("discloses possible Google advertising data use and consent prerequisites", async () => {
+    const privacyPage = manifest.find((page) => page.route === "/privacy/")!;
+    const html = await readBuiltPage(privacyPage);
+
+    expect(html).toContain("https://policies.google.com/technologies/partner-sites");
+    expect(html).toContain("Google-certified consent management platform");
+    expect(html).toContain("does not make AdSense ad requests");
   });
 
   it("keeps the converter entry and static fallback on the homepage", async () => {
