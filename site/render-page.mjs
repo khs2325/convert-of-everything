@@ -3,6 +3,7 @@ const ORIGIN = "https://sprite-to-aseprite.pages.dev";
 const NAVIGATION = [
   ["Converter", "/"],
   ["Guides", "/guides/"],
+  ["Test lab", "/compatibility-lab/"],
   ["Articles", "/articles/"],
   ["Troubleshooting", "/troubleshooting/"],
   ["About", "/about/"],
@@ -35,6 +36,7 @@ export function renderPage(page, content) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${escapeHtml(page.title)}</title>
     <meta name="description" content="${escapeHtml(page.description)}">
+    <meta name="google-adsense-account" content="ca-pub-7611560030784765">
     <link rel="canonical" href="${canonical}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="${escapeHtml(page.title)}">
@@ -48,6 +50,7 @@ export function renderPage(page, content) {
     <meta name="twitter:title" content="${escapeHtml(page.title)}">
     <meta name="twitter:description" content="${escapeHtml(page.description)}">
     <meta name="twitter:image" content="${ORIGIN}/og.png">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/content.css">
   </head>
   <body>
@@ -63,13 +66,14 @@ export function renderPage(page, content) {
           <p class="eyebrow">${escapeHtml(page.eyebrow)}</p>
           <h1>${escapeHtml(page.h1)}</h1>
           <p class="dek">${escapeHtml(page.description)}</p>
+          ${page.lastReviewed ? `<p class="review-note">Maintained by <a href="https://github.com/khs2325">khs2325</a> · Last reviewed ${escapeHtml(page.lastReviewed)}</p>` : ""}
         </header>
         ${content}
       </article>
     </main>
     <footer class="page-footer">
-      <p>Browser-local sprite conversion with documented, conservative format support.</p>
-      <nav aria-label="Policy links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/khs2325/sprite-to-aseprite">GitHub repository</a></nav>
+      <p>Independent open-source project · MIT licensed · Not affiliated with Aseprite.</p>
+      <nav aria-label="Policy links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/khs2325/sprite-to-aseprite/issues">Contact</a><a href="https://github.com/khs2325/sprite-to-aseprite">Source &amp; tests</a></nav>
     </footer>
   </body>
 </html>`;

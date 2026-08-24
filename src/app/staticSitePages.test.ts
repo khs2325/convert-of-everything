@@ -87,6 +87,16 @@ describe("static multi-page site", () => {
     expect(new Set(canonicals).size).toBe(canonicals.length);
   });
 
+  it("publishes the verified AdSense account marker on every indexable page", async () => {
+    for (const page of manifest) {
+      const html = await readBuiltPage(page);
+      expect(matchAll(
+        html,
+        /<meta\s+name="google-adsense-account"\s+content="([^"]+)"\s*\/?\s*>/giu,
+      )).toEqual(["ca-pub-7611560030784765"]);
+    }
+  });
+
   it("puts meaningful headings and prose directly in built HTML", async () => {
     for (const page of manifest) {
       const html = await readBuiltPage(page);
@@ -119,6 +129,11 @@ describe("static multi-page site", () => {
       for (const href of hrefs) {
         if (/^(?:https?:|mailto:|#)/u.test(href)) continue;
         const target = new URL(href, ORIGIN);
+        if (target.pathname.startsWith("/samples/")) {
+          await expect(readFile(path.join(OUT_DIR, target.pathname), "utf8"))
+            .resolves.not.toHaveLength(0);
+          continue;
+        }
         expect(routes.has(target.pathname), `${page.route} links to missing ${href}`).toBe(true);
       }
     }
@@ -147,15 +162,64 @@ describe("static multi-page site", () => {
     expect(words.length).toBeGreaterThan(650);
   });
 
-  it("does not publish private artwork payloads or fake ad units", async () => {
+  it("publishes only repository-owned sample images and no fake ad units", async () => {
     for (const page of manifest) {
       const html = await readBuiltPage(page);
       expect(html).not.toMatch(
         /data:image\/(?:png|gif|jpeg);base64,[A-Za-z0-9+/]{64}/iu,
       );
-      expect(html).not.toMatch(/<img\b/iu);
+      const imageSources = matchAll(html, /<img\b[^>]*\ssrc="([^"]+)"[^>]*>/giu);
+      if (page.route === "/") {
+        expect(imageSources).toEqual(["/samples/spark-sheet.png"]);
+      } else if (page.route === "/compatibility-lab/") {
+        expect(imageSources).toEqual([
+          "/samples/spark-01.png",
+          "/samples/spark-02.png",
+          "/samples/spark-sheet.png",
+          "/samples/timing-transparency-offsets.gif",
+          "/samples/timing-offsets.apng",
+        ]);
+        expect(matchAll(html, /<figure\b/giu)).toHaveLength(5);
+        expect(html).toContain("Last reviewed August 24, 2026");
+      } else {
+        expect(imageSources).toEqual([]);
+      }
       expect(html).not.toMatch(/adsbygoogle|data-ad-(?:client|slot)|pagead2\.googlesyndication/iu);
       expect(html).not.toMatch(/ad[-_ ]placeholder|click (?:an|the) ad/iu);
     }
+  });
+
+  it("keeps every published sample byte-identical to its deterministic fixture", async () => {
+    const sampleFixtures = new Map([
+      ["spark-01.png", "png-sequence/spark-01.png"],
+      ["spark-02.png", "png-sequence/spark-02.png"],
+      ["spark-sheet.png", "spritesheet/spark-sheet.png"],
+      ["spark-sheet.json", "spritesheet/spark-sheet.json"],
+      ["multi-layer.piskel", "piskel/multi-layer.piskel"],
+      ["timing-transparency-offsets.gif", "gif/timing-transparency-offsets.gif"],
+      ["timing-offsets.apng", "apng/timing-offsets.apng"],
+      ["two-layers-two-frames.pxo", "pixelorama/two-layers-two-frames.pxo"],
+      ["two-layers-two-frames.pixil", "pixil/two-layers-two-frames.pixil"],
+      ["two-layers.ora", "openraster/two-layers.ora"],
+      ["two-paint-layers.kra", "krita/two-paint-layers.kra"],
+      ["two-layers.psd", "psd/two-layers.psd"],
+    ]);
+
+    for (const [sample, fixture] of sampleFixtures) {
+      const published = await readFile(path.join(OUT_DIR, "samples", sample));
+      const source = await readFile(path.join(ROOT, "tests", "fixtures", fixture));
+      expect(published.equals(source), `${sample} drifted from ${fixture}`).toBe(true);
+    }
+  });
+
+  it("ships a crawlable ads.txt record and an explicit noindex 404 document", async () => {
+    await expect(readFile(path.join(OUT_DIR, "ads.txt"), "utf8")).resolves.toBe(
+      "google.com, pub-7611560030784765, DIRECT, f08c47fec0942fa0\n",
+    );
+
+    const notFound = await readFile(path.join(OUT_DIR, "404.html"), "utf8");
+    expect(notFound).toContain('<meta name="robots" content="noindex, follow">');
+    expect(notFound).toContain("This route does not exist");
+    expect(notFound).not.toMatch(/rel="canonical"/iu);
   });
 });

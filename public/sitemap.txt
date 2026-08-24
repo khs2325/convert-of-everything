@@ -6,6 +6,7 @@ https://sprite-to-aseprite.pages.dev/guides/pixilart-to-aseprite/
 https://sprite-to-aseprite.pages.dev/guides/piskel-to-aseprite/
 https://sprite-to-aseprite.pages.dev/guides/gif-apng-to-aseprite/
 https://sprite-to-aseprite.pages.dev/guides/project-files-to-aseprite/
+https://sprite-to-aseprite.pages.dev/compatibility-lab/
 https://sprite-to-aseprite.pages.dev/articles/
 https://sprite-to-aseprite.pages.dev/articles/aseprite-frames-layers-cels/
 https://sprite-to-aseprite.pages.dev/articles/browser-local-conversion/

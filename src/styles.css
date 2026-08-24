@@ -307,6 +307,19 @@ a:focus-visible {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.homepage-evidence-image {
+  display: block;
+  width: 100%;
+  height: 10rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(152, 232, 222, 0.24);
+  border-radius: 0.65rem;
+  object-fit: contain;
+  image-rendering: pixelated;
+  background: repeating-conic-gradient(rgba(152, 232, 222, 0.08) 0 25%, rgba(78, 31, 110, 0.16) 0 50%) 50% / 1rem 1rem;
+}
+
 .homepage-process {
   max-width: 68rem;
   padding-left: 1.4rem;
@@ -956,9 +969,11 @@ td {
 @media (max-width: 44rem) {
   .site-nav {
     position: static;
+    flex-wrap: wrap;
     justify-content: flex-start;
     width: 100%;
     margin: 0;
+    overflow-x: visible;
     border-radius: 0.75rem;
   }
 

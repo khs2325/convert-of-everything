@@ -19,6 +19,8 @@ approval.
 - [ ] No fake reviews, users, statistics, benchmarks, company history,
   partnerships, endorsements, or qualifications appear.
 - [ ] The site has no visible “under construction” or placeholder content.
+- [ ] `/compatibility-lab/` exposes downloadable original synthetic inputs,
+  observed output facts, preservation limits, and links to reproducible tests.
 
 ## Routes and crawlability
 
@@ -34,6 +36,10 @@ approval.
   JavaScript execution.
 - [ ] `sitemap.xml` contains every intended indexable route and no missing
   route; `robots.txt` points to it.
+- [ ] An arbitrary unknown production path returns the branded `404.html` with
+  HTTP 404, `noindex`, and no homepage canonical.
+- [ ] `/ads.txt` returns `text/plain` with the publisher record from the
+  AdSense account instead of returning homepage HTML.
 - [ ] Former content hashes redirect to the corresponding real page while
   `#converter` and `#support` remain local homepage targets.
 
@@ -43,6 +49,8 @@ approval.
   inventing a company, staff, users, or endorsements.
 - [ ] Contact guidance provides a real public repository path and warns against
   sharing private artwork.
+- [ ] Public evidence identifies its maintainer and real review date without
+  inventing credentials, users, or affiliations.
 - [ ] Privacy distinguishes local artwork processing from Cloudflare static
   resource requests and external links.
 - [ ] Privacy accurately reflects the deployed status of ads, analytics,

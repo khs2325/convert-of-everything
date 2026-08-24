@@ -54,10 +54,10 @@ composites 50%-alpha red over opaque green to produce `[128,127,0,255]`.
 previous restores the pre-draw rectangle before the following frame. APNG
 fixtures are flat animations and contain no recoverable source layers.
 
-The OpenRaster fixtures add deterministic ZIP-backed `.ora` containers for the
-future single-frame layered raster importer. Tests inspect their ZIP signatures,
-stored `mimetype`, `stack.xml` metadata, referenced PNG signatures, and preview
-PNG dimensions without implementing conversion.
+The OpenRaster fixtures are deterministic ZIP-backed `.ora` containers for the
+implemented single-frame layered raster importer. Tests cover their ZIP
+signatures, stored `mimetype`, `stack.xml` metadata, referenced PNG signatures,
+preview dimensions, normalized layers, and deterministic rejection paths.
 
 | Fixture | Canvas | Layers | Metadata covered |
 | --- | --- | ---: | --- |
@@ -71,9 +71,10 @@ pixels only. They are intended to preserve layers when the source format
 contains supported layer data; they do not use `mergedimage.png` to recover
 layers.
 
-The Pixelorama fixtures add deterministic ZIP-backed `.pxo` containers for the
-future importer. Tests inspect `data.json`, `mimetype`, preview PNG metadata,
-and raw RGBA cel payloads without implementing conversion.
+The Pixelorama fixtures are deterministic ZIP-backed `.pxo` containers for the
+implemented raster-project importer. Tests inspect `data.json`, `mimetype`,
+preview PNG metadata, raw RGBA cel payloads, normalized layers and frames, and
+deterministic rejection paths.
 
 | Fixture | Canvas | Frames | Layers | Metadata covered |
 | --- | --- | ---: | ---: | --- |
@@ -110,10 +111,10 @@ supported layer data. They do not establish compatibility with other Pixilart
 versions, external images, non-normal blends, effects, groups, palettes, or
 ambiguous ordering. Layer `active` is not treated as Aseprite visibility.
 
-The Krita fixtures add deterministic ZIP-backed `.kra` containers for the
-future minimal native-raster importer. Tests inspect the stored `mimetype`,
-`maindoc.xml`, preview PNGs, native paint-device tile headers, default pixels,
-and BGRA tile bytes without implementing conversion.
+The Krita fixtures are deterministic ZIP-backed `.kra` containers for the
+implemented minimal native-raster importer. Tests inspect the stored
+`mimetype`, `maindoc.xml`, preview PNGs, native paint-device tile headers,
+default pixels, BGRA tile bytes, normalized paint layers, and rejection paths.
 
 | Fixture | Canvas | Layers | Metadata covered |
 | --- | --- | ---: | --- |
@@ -133,10 +134,11 @@ tests must convert those bytes to browser `ImageData` RGBA. `preview.png` and
 `mergedimage.png` are flattened previews and must not be used to recover
 layers.
 
-Planned PSD fixtures are documented in `docs/psd-fixtures.md`. Do not add PSD
-binary fixtures yet. Future `.psd` fixtures must be synthetic, generated
-locally, reproducible byte-for-byte, and free of downloaded, copyrighted,
-private, or user-provided artwork.
+The PSD fixtures implement the narrow RGB 8-bit raster-layer subset documented
+in `docs/psd-fixtures.md`. They are synthetic, generated locally, reproducible
+byte-for-byte, and free of downloaded, copyrighted, private, or user-provided
+artwork. Tests cover supported raster pixels and layer properties plus explicit
+rejection of structures outside that subset.
 
 The first PNG frame is a coral four-pixel spark around a yellow center. The
 second is the same shape shifted one pixel right and colored cyan. All unused

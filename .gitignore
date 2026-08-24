@@ -21,6 +21,7 @@ test-output/
 # generated multi-page HTML entry points (source lives in site/)
 /about/
 /articles/
+/compatibility-lab/
 /guides/
 /privacy/
 /terms/

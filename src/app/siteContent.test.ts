@@ -237,6 +237,7 @@ describe("AdSense readiness site content", () => {
     expect(INFORMATION_PAGE_LINKS.map((page) => page.id)).toEqual([
       "converter",
       "guides",
+      "compatibility-lab",
       "articles",
       "troubleshooting",
       "about",
@@ -246,6 +247,7 @@ describe("AdSense readiness site content", () => {
     expect(links.map((link) => link.href)).toEqual([
       "/",
       "/guides/",
+      "/compatibility-lab/",
       "/articles/",
       "/troubleshooting/",
       "/about/",
@@ -262,6 +264,7 @@ describe("AdSense readiness site content", () => {
     expect(text).toContain("rebuilds timelines from flat frame sources");
     expect(text).toContain("preserves layers only when");
     expect(hrefs).toEqual(expect.arrayContaining([
+      "/compatibility-lab/",
       "/guides/",
       "/articles/aseprite-frames-layers-cels/",
       "/troubleshooting/",
