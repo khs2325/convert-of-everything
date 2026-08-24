@@ -56,6 +56,15 @@ describe("format route selection", () => {
     });
   });
 
+  it("uses locally hosted official artwork when an official format icon is available", () => {
+    expect(node("png-sequence").iconSrc).toBe("/format-icons/png.png");
+    expect(node("atlas-json").iconSrc).toBe("/format-icons/json.gif");
+    expect(node("piskel").iconSrc).toBe("/format-icons/piskel.png");
+    expect(node("pixelorama").iconSrc).toBe("/format-icons/pixelorama.png");
+    expect(node("aseprite").iconSrc).toBe("/format-icons/aseprite.png");
+    expect(node("spritesheet").iconSrc).toBeUndefined();
+  });
+
   it("projects every format onto the visible bounds of the globe surface", () => {
     for (const item of FORMAT_ROUTE_NODES) {
       const point = projectFormatSurfacePoint(item.position, 22, -47);
