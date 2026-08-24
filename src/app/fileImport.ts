@@ -1,4 +1,8 @@
 import { validateSpriteProject } from "../core/validation";
+import {
+  getAsepriteImportDiagnostic,
+  MAX_ASEPRITE_FILE_BYTES,
+} from "../core/importers/aseprite";
 import { getApngImportDiagnostic } from "../core/importers/apng";
 import { getGifImportDiagnostic } from "../core/importers/gif";
 import { getKritaImportDiagnostic } from "../core/importers/krita";
@@ -10,7 +14,7 @@ import { getPsdParserDiagnostic } from "../core/importers/psd";
 import { getSpritesheetJsonImportDiagnostic } from "../core/importers/spritesheetJson";
 
 export const SUPPORTED_SOURCE_ACCEPT =
-  ".png,.json,.piskel,.pixil,.gif,.apng,.ora,.pxo,.kra,.psd,image/png,image/gif,image/apng,image/openraster,application/x-pixelorama,application/x-krita,application/x-kra,image/vnd.adobe.photoshop,image/x-photoshop,image/psd,application/x-photoshop,application/photoshop,application/psd,application/json";
+  ".png,.json,.piskel,.pixil,.gif,.apng,.ora,.pxo,.kra,.psd,.ase,.aseprite,image/png,image/gif,image/apng,image/openraster,application/x-pixelorama,application/x-krita,application/x-kra,image/vnd.adobe.photoshop,image/x-photoshop,image/psd,application/x-photoshop,application/photoshop,application/psd,application/x-aseprite,image/x-aseprite,application/json";
 
 export type FileImportFormat =
   | "png-sequence"
@@ -23,12 +27,13 @@ export type FileImportFormat =
   | "openraster"
   | "pixelorama"
   | "krita"
-  | "psd";
+  | "psd"
+  | "aseprite";
 
 export type BrowserSourceFile =
   | {
       file: File;
-      kind: "png" | "gif" | "apng" | "ora" | "pxo" | "kra" | "psd" | "pixil";
+      kind: "png" | "gif" | "apng" | "ora" | "pxo" | "kra" | "psd" | "pixil" | "aseprite";
       bytes: ArrayBuffer;
     }
   | {
@@ -56,7 +61,8 @@ export type SourceFilePresentation = {
     | "OpenRaster project"
     | "Pixelorama project"
     | "Krita project"
-    | "PSD project";
+    | "PSD project"
+    | "Aseprite project";
 };
 
 export type SourcePreviewUrlStore = {
@@ -81,6 +87,7 @@ const SOURCE_TYPE_LABELS: Record<
   pxo: "Pixelorama project",
   kra: "Krita project",
   psd: "PSD project",
+  aseprite: "Aseprite project",
 };
 
 export function formatFileSize(byteCount: number): string {
@@ -202,6 +209,9 @@ export function getSourceKind(
   if (extension === ".psd") {
     return "psd";
   }
+  if (extension === ".ase" || extension === ".aseprite") {
+    return "aseprite";
+  }
   const mimeType = file.type.toLowerCase();
   if (mimeType === "image/gif") {
     return "gif";
@@ -228,6 +238,9 @@ export function getSourceKind(
   ) {
     return "psd";
   }
+  if (mimeType === "application/x-aseprite" || mimeType === "image/x-aseprite") {
+    return "aseprite";
+  }
   if (mimeType === "image/png") {
     return "png";
   }
@@ -246,7 +259,8 @@ async function readSourceFile(
     kind === "pxo" ||
     kind === "kra" ||
     kind === "psd" ||
-    kind === "pixil"
+    kind === "pixil" ||
+    kind === "aseprite"
   ) {
     return { file, kind, bytes: await file.arrayBuffer() };
   }
@@ -312,6 +326,11 @@ const FORMAT_HELP: Record<FileImportFormat, FormatHelp> = {
     suggestion:
       "Check that the .psd file contains supported RGB 8-bit raster layers from the documented subset.",
   },
+  aseprite: {
+    label: "Aseprite project",
+    suggestion:
+      "Check that the file is a supported 32-bit RGBA .ase or .aseprite project without unsupported editor features.",
+  },
 };
 
 function getFormatHelp(
@@ -344,6 +363,9 @@ function getFormatHelp(
   }
   if (files.some((file) => file.kind === "psd")) {
     return FORMAT_HELP.psd;
+  }
+  if (files.some((file) => file.kind === "aseprite")) {
+    return FORMAT_HELP.aseprite;
   }
   if (files.some((file) => file.kind === "json")) {
     return FORMAT_HELP["spritesheet-json"];
@@ -416,6 +438,14 @@ function getImporterMessage(
       ? message
       : getPsdParserDiagnostic(error);
   }
+  if (format === "aseprite") {
+    const message = error instanceof Error
+      ? error.message.replace(/\s+/g, " ").trim()
+      : "";
+    return message === "Aseprite mode requires exactly one .ase or .aseprite file."
+      ? message
+      : getAsepriteImportDiagnostic(error);
+  }
   if (
     format === "spritesheet-json" ||
     (format === undefined && files.some((file) => file.kind === "json"))
@@ -457,6 +487,9 @@ function getSelectionStatus(
   if (format === "psd") {
     return "Selected 1 PSD project. The supported RGB 8-bit raster-layer subset will be checked browser-locally.";
   }
+  if (format === "aseprite") {
+    return "Selected 1 Aseprite project. The supported 32-bit RGBA subset will be checked browser-locally.";
+  }
   const noun = fileCount === 1 ? "file" : "files";
   return `Selected ${fileCount} supported ${noun}.`;
 }
@@ -497,7 +530,14 @@ export function bindFileImportControl(
       if (kind === null) {
         input.value = "";
         showError(
-          `Unsupported file "${file.name}". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, or PSD files only.`,
+          `Unsupported file "${file.name}". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite files only.`,
+        );
+        return false;
+      }
+      if (kind === "aseprite" && file.size > MAX_ASEPRITE_FILE_BYTES) {
+        input.value = "";
+        showError(
+          `Aseprite project import failed. The selected file exceeds the ${MAX_ASEPRITE_FILE_BYTES}-byte browser-local limit.`,
         );
         return false;
       }
@@ -611,7 +651,7 @@ export function mountFileImportUi(
   dropInstructions.textContent =
     "Drag and drop files here, or choose files with the control below.";
   supportedTypes.textContent =
-    "Supported files: PNG images (.png), JSON metadata (.json), Piskel projects (.piskel), Pixil/Pixilart projects (.pixil, documented project-file subset), GIF animations (.gif), APNG animations (.apng or .png), OpenRaster projects (.ora), Pixelorama projects (.pxo), Krita projects (.kra, documented minimal raster subset), and PSD projects (.psd, RGB 8-bit raster-layer subset).";
+    "Supported files: PNG images (.png), JSON metadata (.json), Piskel projects (.piskel), Pixil/Pixilart projects (.pixil), GIF/APNG animations, OpenRaster (.ora), Pixelorama (.pxo), Krita (.kra), PSD (.psd), and supported 32-bit RGBA Aseprite projects (.ase, .aseprite).";
   privacyNotice.textContent =
     "Your files stay in this browser and are never uploaded.";
   input.type = "file";
@@ -619,7 +659,7 @@ export function mountFileImportUi(
   input.accept = SUPPORTED_SOURCE_ACCEPT;
   input.setAttribute(
     "aria-label",
-    "Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, or PSD sprite source files",
+    "Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite sprite source files",
   );
   errorOutput.setAttribute("role", "alert");
   errorOutput.setAttribute("aria-live", "assertive");

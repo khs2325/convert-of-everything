@@ -84,7 +84,7 @@ export function createSupportSection(
   heading.id = "support-heading";
   heading.textContent = "Support the project";
   freeNotice.textContent =
-    "Sprite to Aseprite Converter is free to use.";
+    "Convert of Everything is free to use.";
   privacyNotice.textContent =
     "Conversion stays browser-local, and files are not uploaded for conversion.";
   purpose.textContent =

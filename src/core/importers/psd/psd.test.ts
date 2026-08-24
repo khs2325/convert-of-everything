@@ -511,23 +511,6 @@ describe("PSD importer", () => {
       frames: [{ index: 0, durationMs: 100 }],
       layers: [
         {
-          id: "psd-layer-0",
-          name: "Top visible half",
-          visible: true,
-          opacity: 128,
-          cels: [
-            {
-              frameIndex: 0,
-              x: 0,
-              y: 0,
-              imageData: {
-                width: 4,
-                height: 3,
-              },
-            },
-          ],
-        },
-        {
           id: "psd-layer-1",
           name: "Base visible",
           visible: true,
@@ -544,21 +527,38 @@ describe("PSD importer", () => {
             },
           ],
         },
+        {
+          id: "psd-layer-0",
+          name: "Top visible half",
+          visible: true,
+          opacity: 128,
+          cels: [
+            {
+              frameIndex: 0,
+              x: 0,
+              y: 0,
+              imageData: {
+                width: 4,
+                height: 3,
+              },
+            },
+          ],
+        },
       ],
     });
-    expect(pixel(project.layers[0].cels[0].imageData, 2, 0)).toEqual([
+    expect(pixel(project.layers[1].cels[0].imageData, 2, 0)).toEqual([
       255, 209, 102, 255,
     ]);
-    expect(pixel(project.layers[0].cels[0].imageData, 1, 1)).toEqual([
+    expect(pixel(project.layers[1].cels[0].imageData, 1, 1)).toEqual([
       239, 71, 111, 255,
     ]);
-    expect(pixel(project.layers[0].cels[0].imageData, 0, 2)).toEqual([
+    expect(pixel(project.layers[1].cels[0].imageData, 0, 2)).toEqual([
       0, 0, 0, 0,
     ]);
-    expect(pixel(project.layers[1].cels[0].imageData, 0, 1)).toEqual([
+    expect(pixel(project.layers[0].cels[0].imageData, 0, 1)).toEqual([
       17, 138, 178, 255,
     ]);
-    expect(pixel(project.layers[1].cels[0].imageData, 1, 2)).toEqual([
+    expect(pixel(project.layers[0].cels[0].imageData, 1, 2)).toEqual([
       255, 209, 102, 255,
     ]);
     expect(pixel(project.layers[1].cels[0].imageData, 2, 2)).toEqual([
@@ -609,32 +609,32 @@ describe("PSD importer", () => {
       frames: [{ index: 0, durationMs: 100 }],
       layers: [
         {
-          id: "psd-layer-0",
-          name: "Top hidden half",
-          visible: false,
-          opacity: 128,
-          cels: [{ frameIndex: 0, x: 0, y: 0 }],
-        },
-        {
           id: "psd-layer-1",
           name: "Base visible",
           visible: true,
           opacity: 255,
           cels: [{ frameIndex: 0, x: 0, y: 0 }],
         },
+        {
+          id: "psd-layer-0",
+          name: "Top hidden half",
+          visible: false,
+          opacity: 128,
+          cels: [{ frameIndex: 0, x: 0, y: 0 }],
+        },
       ],
     });
-    expect(pixel(project.layers[0].cels[0].imageData, 0, 0))
+    expect(pixel(project.layers[1].cels[0].imageData, 0, 0))
       .toEqual([0, 0, 0, 0]);
-    expect(pixel(project.layers[0].cels[0].imageData, 2, 0))
+    expect(pixel(project.layers[1].cels[0].imageData, 2, 0))
       .toEqual([255, 209, 102, 255]);
-    expect(pixel(project.layers[0].cels[0].imageData, 1, 1))
+    expect(pixel(project.layers[1].cels[0].imageData, 1, 1))
       .toEqual([239, 71, 111, 255]);
-    expect(pixel(project.layers[1].cels[0].imageData, 0, 1))
+    expect(pixel(project.layers[0].cels[0].imageData, 0, 1))
       .toEqual([17, 138, 178, 255]);
-    expect(pixel(project.layers[1].cels[0].imageData, 1, 2))
+    expect(pixel(project.layers[0].cels[0].imageData, 1, 2))
       .toEqual([255, 209, 102, 255]);
-    expect(pixel(project.layers[1].cels[0].imageData, 3, 2))
+    expect(pixel(project.layers[0].cels[0].imageData, 3, 2))
       .toEqual([0, 0, 0, 0]);
   });
 
@@ -652,26 +652,26 @@ describe("PSD importer", () => {
         y: layer.cels[0].y,
       }))).toEqual([
         {
-          name: "Top visible half",
-          opacity: 128,
-          visible: true,
-          x: 0,
-          y: 0,
-        },
-        {
           name: "Base visible",
           opacity: 255,
           visible: true,
           x: 0,
           y: 0,
         },
+        {
+          name: "Top visible half",
+          opacity: 128,
+          visible: true,
+          x: 0,
+          y: 0,
+        },
       ]);
-      expect([...project.layers[0].cels[0].imageData.data]).toEqual([
+      expect([...project.layers[1].cels[0].imageData.data]).toEqual([
         0, 0, 0, 0, 0, 0, 0, 0, 255, 209, 102, 255, 0, 0, 0, 0,
         0, 0, 0, 0, 239, 71, 111, 255, 17, 138, 178, 255, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       ]);
-      expect([...project.layers[1].cels[0].imageData.data]).toEqual([
+      expect([...project.layers[0].cels[0].imageData.data]).toEqual([
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         17, 138, 178, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         239, 71, 111, 255, 255, 209, 102, 255, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -747,17 +747,17 @@ describe("PSD importer", () => {
     expect(project.frames).toEqual([{ index: 0, durationMs: 100 }]);
     expect(project.layers).toMatchObject([
       {
-        id: "psd-layer-0",
-        name: "Top hidden half",
-        visible: false,
-        opacity: 128,
-        cels: [{ frameIndex: 0, x: 0, y: 0 }],
-      },
-      {
         id: "psd-layer-1",
         name: "Base visible",
         visible: true,
         opacity: 255,
+        cels: [{ frameIndex: 0, x: 0, y: 0 }],
+      },
+      {
+        id: "psd-layer-0",
+        name: "Top hidden half",
+        visible: false,
+        opacity: 128,
         cels: [{ frameIndex: 0, x: 0, y: 0 }],
       },
     ]);
@@ -796,18 +796,18 @@ describe("PSD importer", () => {
     });
 
     expect(project.layers.map((layer) => layer.id)).toEqual([
-      "psd-layer-0",
       "psd-layer-1",
+      "psd-layer-0",
     ]);
     expect(project.layers.map((layer) => layer.name)).toEqual([
       "Shared name",
       "Shared name",
     ]);
     expect(project.layers.map((layer) => layer.cels[0].x)).toEqual([0, 0]);
-    expect(pixel(project.layers[0].cels[0].imageData, 2, 0)).toEqual([
+    expect(pixel(project.layers[1].cels[0].imageData, 2, 0)).toEqual([
       255, 209, 102, 255,
     ]);
-    expect(pixel(project.layers[1].cels[0].imageData, 0, 1)).toEqual([
+    expect(pixel(project.layers[0].cels[0].imageData, 0, 1)).toEqual([
       17, 138, 178, 255,
     ]);
   });
@@ -836,7 +836,7 @@ describe("PSD importer", () => {
       },
     });
 
-    expect(project.layers.map((layer) => layer.opacity)).toEqual([0, 255, 255]);
+    expect(project.layers.map((layer) => layer.opacity)).toEqual([255, 255, 0]);
   });
 
   it.each([-1, 1.5, 256])(

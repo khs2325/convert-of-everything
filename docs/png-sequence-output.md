@@ -1,12 +1,12 @@
-# PNG Sequence Output Plan
+# PNG Sequence Output
 
-Status: planning only. Do not implement PNG export, `.aseprite` input, UI
-controls, or zip packaging from this note alone.
+Status: implemented as deterministic browser-local flattened PNG files. The
+current UI presents individual download links and does not package a ZIP or
+companion timing manifest.
 
-PNG sequence output is the first planned non-Aseprite export target. It should
-export one flattened PNG per `SpriteProject` frame after any importer, including
-a future `.ase` or `.aseprite` reader, has converted source data into the shared
-model.
+PNG sequence output exports one flattened PNG per `SpriteProject` frame after
+any supported importer, including the `.ase` and `.aseprite` reader, has
+converted source data into the shared model.
 
 ## Browser-Local Boundary
 
@@ -14,7 +14,7 @@ All output generation must stay browser-local:
 
 ```text
 browser-selected source file
-  -> importer or future Aseprite reader
+  -> importer or Aseprite reader
   -> validated SpriteProject
   -> flattened frame compositor
   -> PNG Blob objects and optional metadata Blob
@@ -138,11 +138,11 @@ PNG sequence output is a flattened pixel export:
   profiles are not represented in the PNG files.
 - Visible supported layers contribute to each frame's flattened pixels.
 - Hidden layers do not contribute to exported PNGs.
-- A future `.aseprite` reader may preserve layers in `SpriteProject` when the
+- The `.aseprite` reader preserves supported layers in `SpriteProject` when the
   source contains supported layer data, but this exporter still outputs flattened
   frames.
-- Frame tags can be copied to the optional manifest only after the importer and
-  model have tested support for those tags.
+- Frame tags are supported by the model but are not stored in PNG files. An
+  optional manifest remains a separate future feature.
 
 Do not describe this output as lossless or as preserving editable Aseprite
 layers. A PNG sequence can be useful for engine pipelines and interchange, but
@@ -150,19 +150,19 @@ it cannot carry the full editing model.
 
 ## Browser Download Behavior
 
-The implementation must not add a zip dependency for the initial PNG sequence
+The implementation does not add a zip dependency for the initial PNG sequence
 export.
 
 For one-frame projects, the UI can download the single PNG `Blob` directly. For
 multi-frame projects, browser behavior is less predictable because automatic
 multi-file downloads may be blocked or require user permission. The first
-implementation should provide:
+implementation provides:
 
 - a generated list of per-frame download links using local object URLs;
-- a `Download all frames` action that attempts sequential downloads only from an
-  explicit user gesture;
-- a separate optional manifest download link; and
-- clear fallback behavior when the browser blocks multiple downloads.
+- explicit per-file download gestures, avoiding browser-blocked automatic
+  multi-download behavior; and
+- cleanup of local object URLs when output is prepared again or the project is
+  replaced.
 
 If the File System Access API is available, a later enhancement may offer
 directory export after explicit user permission. That path must remain optional
@@ -175,20 +175,18 @@ does not need to hold every encoded PNG `Blob` at once.
 
 ## Future Task Breakdown
 
-1. Add a core flattened-frame compositor with tests for layer order, visibility,
+1. Completed: add a core flattened-frame compositor with tests for layer order, visibility,
    opacity, cel offsets, transparent backgrounds, clipping, and missing cels.
-2. Add a PNG sequence exporter that consumes `SpriteProject`, validates limits,
+2. Completed: add a PNG sequence exporter that consumes `SpriteProject`, validates limits,
    encodes each flattened frame to PNG, and returns named browser-local `Blob`
    records.
 3. Add the optional JSON timing manifest generator with tests for frame order,
    durations, filenames, and supported frame tags.
-4. Add UI download behavior for single PNG, per-frame links, sequential
-   `Download all frames`, manifest download, object URL cleanup, and blocked
-   multi-download fallback messaging.
-5. Enable PNG sequence in the output selector only after exporter and UI tests
-   pass.
-6. Connect future `.ase` or `.aseprite` input to this exporter only through
-   validated `SpriteProject` output from the reader.
+4. Completed for the MVP: add per-frame download links and object URL cleanup.
+   Automatic `Download all`, ZIP packaging, and a manifest remain follow-ups.
+5. Completed: enable PNG sequence in the output selector after exporter tests.
+6. Completed: connect `.ase` and `.aseprite` input only through validated
+   `SpriteProject` output from the reader.
 
 Each task should keep core exporter logic independent from UI code and should
 update product copy only for behavior that is implemented and tested.

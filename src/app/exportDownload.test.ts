@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { SpriteProject } from "../core/SpriteProject";
-import { bindExportDownloadControl } from "./exportDownload";
+import { bindExportDownloadControl, mountExportDownloadUi } from "./exportDownload";
 
 type ButtonStub = {
   disabled: boolean;
@@ -42,6 +42,61 @@ function createProject(): SpriteProject {
       },
     ],
   };
+}
+
+type Listener = EventListenerOrEventListenerObject;
+
+class ElementStub {
+  readonly attributes = new Map<string, string>();
+  readonly children: ElementStub[] = [];
+  readonly listeners = new Map<string, Listener>();
+  className = "";
+  disabled = false;
+  download = "";
+  hidden = false;
+  href = "";
+  max = "";
+  min = "";
+  step = "";
+  textContent = "";
+  type = "";
+  value = "";
+
+  constructor(
+    readonly tagName: string,
+    readonly ownerDocument: DocumentStub,
+  ) {}
+
+  addEventListener(type: string, listener: Listener): void {
+    this.listeners.set(type, listener);
+  }
+
+  append(...children: ElementStub[]): void {
+    for (const child of children) {
+      this.children.push(child);
+      if (this.tagName === "select" && child.tagName === "option" && this.value === "") {
+        this.value = child.value;
+      }
+    }
+  }
+
+  removeEventListener(type: string, listener: Listener): void {
+    if (this.listeners.get(type) === listener) this.listeners.delete(type);
+  }
+
+  replaceChildren(...children: ElementStub[]): void {
+    this.children.splice(0, this.children.length, ...children);
+  }
+
+  setAttribute(name: string, value: string): void {
+    this.attributes.set(name, value);
+  }
+}
+
+class DocumentStub {
+  createElement(tagName: string): ElementStub {
+    return new ElementStub(tagName, this);
+  }
 }
 
 describe("bindExportDownloadControl", () => {
@@ -134,5 +189,40 @@ describe("bindExportDownloadControl", () => {
     expect(button.listener).toBeTypeOf("function");
     control.destroy();
     expect(button.listener).toBeUndefined();
+  });
+});
+
+describe("mountExportDownloadUi", () => {
+  it("revokes partial object URLs and removes partial links when preparation fails", () => {
+    const document = new DocumentStub();
+    const container = document.createElement("main");
+    const revokeObjectUrl = vi.fn();
+    const createObjectUrl = vi.fn()
+      .mockReturnValueOnce("blob:first")
+      .mockImplementationOnce(() => { throw new Error("URL allocation failed"); });
+    const control = mountExportDownloadUi(
+      container as unknown as HTMLElement,
+      undefined,
+      {
+        createObjectUrl,
+        revokeObjectUrl,
+        exportPngSequence: () => [
+          { bytes: new Uint8Array([1]), filename: "frame-1.png", mimeType: "image/png" },
+          { bytes: new Uint8Array([2]), filename: "frame-2.png", mimeType: "image/png" },
+        ],
+      },
+    );
+    const section = container.children[0];
+    const formatSelect = section.children[1].children[0];
+    const errorOutput = section.children[7];
+    const downloadList = section.children[8];
+    formatSelect.value = "png-sequence";
+    control.setProject(createProject());
+
+    expect(control.exportCurrentProject()).toBe(false);
+    expect(revokeObjectUrl).toHaveBeenCalledWith("blob:first");
+    expect(downloadList.children).toHaveLength(0);
+    expect(errorOutput.hidden).toBe(false);
+    expect(errorOutput.textContent).toContain("URL allocation failed");
   });
 });

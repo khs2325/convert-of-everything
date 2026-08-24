@@ -1,8 +1,9 @@
-# Sprite to Aseprite Converter
+# Convert of Everything
 
-Sprite to Aseprite Converter rebuilds editable Aseprite timelines from
-sprite-related files. It converts frames into a `.aseprite` file; it does not
-reconstruct information that is absent from the source.
+Convert of Everything is a browser-local sprite format converter. It rebuilds
+editable Aseprite timelines from supported sources and converts normalized
+sprite projects into `.aseprite`, flattened PNG sequences, or spritesheet PNG
++ JSON output. It does not reconstruct information that is absent from a source.
 
 ## Supported inputs
 
@@ -15,6 +16,13 @@ conversion and download problems, see
 [docs/troubleshooting.md](docs/troubleshooting.md).
 
 The current conversion core supports:
+
+- **Aseprite project:** accepts exactly one `.ase` or `.aseprite` 32-bit RGBA
+  project in the [documented supported subset](docs/aseprite-input-feasibility.md).
+  It preserves supported frames, timing, normal raster layers, layer names,
+  visibility, opacity, cel placement, pixels, and frame tags. Unsupported
+  groups, tilemaps, blend modes, profiles, slices, and editor metadata are
+  rejected rather than silently presented as preserved.
 
 - **PNG sequence:** each PNG becomes one frame, in the order supplied. Every
   image must have the same dimensions. Frames use a configurable duration,
@@ -98,7 +106,7 @@ other unverified features are unsupported and rejected rather than guessed.
 ## Browser-only processing
 
 Artwork and metadata are read and processed in the browser. Conversion and
-`.aseprite` generation do not upload user files to a server or send them to a
+output generation do not upload user files to a server or send them to a
 remote image-processing service. The generated file is downloaded locally
 using browser APIs. Selected files can be reviewed and removed before
 conversion; GIF, APNG, OpenRaster, Pixelorama, Pixil/Pixilart, Krita, and PSD
@@ -172,9 +180,9 @@ Piskel, OpenRaster, Pixelorama, Pixil/Pixilart, Krita, and PSD inputs may contai
 layer data; PNG sequences, spritesheets, GIF, and APNG do not. Conversion is
 therefore not described as lossless or as restoring an original Aseprite file.
 
-## Round-trip limitations
+## Output formats and round-trip limitations
 
-Future bidirectional paths are not guaranteed to be lossless. Aseprite, PSD,
+Bidirectional paths are not guaranteed to be lossless. Aseprite, PSD,
 PNG sequences, spritesheets, GIF, and APNG expose different feature sets, so a
 file exported to one format and imported again may keep only the data that both
 formats and the converter's documented subset can represent.
@@ -184,6 +192,13 @@ frames rather than editable source layers, so they cannot recover original
 source layers. Tags, palettes, effects, groups, masks, and format-specific
 metadata may also be unsupported or omitted unless a specific path documents
 and tests preservation.
+
+The output selector provides:
+
+- `.aseprite`: the supported editable `SpriteProject` timeline and raster layers.
+- PNG sequence: one flattened PNG per frame; timing and layers are not stored.
+- Spritesheet PNG + JSON: one flattened row-major sheet plus frame rectangles,
+  durations, and supported frame tags.
 
 ## Aseprite output support
 

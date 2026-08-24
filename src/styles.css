@@ -255,6 +255,60 @@ a:focus-visible {
   margin-bottom: 0;
 }
 
+.download-area > section {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid rgba(152, 232, 222, 0.28);
+  border-radius: 0.75rem;
+  background: rgba(32, 21, 60, 0.92);
+}
+
+.download-area h3,
+.download-area .export-note,
+.download-area button,
+.download-area [role="status"],
+.download-area [role="alert"],
+.download-list {
+  grid-column: 1 / -1;
+}
+
+.download-area label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.download-area input,
+.download-area select {
+  width: 100%;
+}
+
+.download-area .export-note {
+  margin: 0;
+  color: var(--muted);
+}
+
+.download-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.download-list a {
+  display: block;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--teal);
+  border-radius: 0.55rem;
+  color: var(--mint);
+  background: var(--indigo);
+  overflow-wrap: anywhere;
+}
+
 .mode-helper,
 .site-info-section,
 .support-section {
@@ -967,6 +1021,10 @@ td {
 }
 
 @media (max-width: 44rem) {
+  .download-area > section {
+    grid-template-columns: 1fr;
+  }
+
   .site-nav {
     position: static;
     flex-wrap: wrap;

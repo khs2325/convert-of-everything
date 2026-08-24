@@ -2,7 +2,7 @@
 
 ## Product name
 
-Sprite to Aseprite Converter
+Convert of Everything
 
 ## Goal
 
@@ -139,49 +139,48 @@ versions, ambiguous identity, external/non-PNG payloads, non-normal blends, and
 unverified features are rejected. This is limited project-file import, not
 full or lossless compatibility. Files remain local and are never uploaded.
 
-## Planned additional free/open art tool project formats
+## Additional free/open art tool project formats
 
-The next project-format roadmap continues to focus on small, deterministic,
+Implemented and researched project-format work focuses on small, deterministic,
 browser-local subsets rather than broad compatibility claims:
 
 1. GIMP `.xcf` is research-only at first because it is a living GIMP-native
    format tied closely to GIMP internals. The
    [XCF feasibility note](gimp-xcf-feasibility.md) recommends no direct importer
    task now and prefers OpenRaster for GIMP interchange.
-2. LibreSprite/Aseprite `.ase` and `.aseprite` input is also research-only at
-   first so binary reader scope, chunk coverage, validation, and round-trip
-   limitations are understood before implementation. See the
-   [input feasibility note](aseprite-input-feasibility.md).
+2. LibreSprite/Aseprite `.ase` and `.aseprite` input now has a tested first
+   subset for 32-bit RGBA documents, direct normal raster layers, compressed
+   image cels, frame timing, and supported tags. See the
+   [input feasibility note](aseprite-input-feasibility.md) for explicit limits.
 For every planned format, the converter should rebuild timelines, convert
 supported frames, and preserve supported raster layer data only when that data
 exists in the documented source subset. It must not upload artwork, add
 server-side processing, or imply lossless conversion for unsupported source
 features.
 
-## Planned post-MVP compatibility work
+## Post-MVP compatibility status
 
-The next planned work expands the existing browser-local architecture without
-claiming support before implementation is tested:
+Completed compatibility work expands the browser-local architecture while
+keeping each claim tied to its tested subset:
 
-1. TexturePacker trimmed frames, followed by rotated frames and clearer atlas
-   format diagnostics.
+1. TexturePacker trimmed frames, supported 90-degree clockwise rotation, and
+   clearer atlas diagnostics are implemented for the documented JSON subset.
 2. Optional SpriteProject frame tags are mapped from supported Aseprite JSON.
-   Encoding those tags in `.aseprite` output remains a separate planned writer
-   change.
+   The Aseprite and spritesheet JSON exporters now encode the supported tag
+   subset; richer tag metadata remains outside the model.
 
 Flat atlas sources do not provide editable source-layer data, so those paths
 rebuild frames on a generated layer rather than claim layer recovery. All
 planned processing remains in the browser with no artwork upload or server
 conversion.
 
-## Planned output format selector
+## Output format selector
 
-A future selector may offer additional export targets after the relevant
-exporters are specified and tested. The current plan is documented in
-[output-format-selector.md](output-format-selector.md): Aseprite remains the
-enabled default, while PNG sequence, spritesheet PNG, GIF, APNG, and
-research-only PSD stay disabled until their browser-local exporter scope,
-limits, and tests exist.
+The implemented selector offers Aseprite, PNG sequence, and spritesheet PNG +
+JSON after conversion to a valid `SpriteProject`. Aseprite remains the default.
+GIF, APNG, and research-only PSD output remain disabled until their
+browser-local exporter scope, limits, and tests exist. See
+[output-format-selector.md](output-format-selector.md).
 
 PSD output feasibility is documented in
 [psd-output-feasibility.md](psd-output-feasibility.md). The cautious target is
@@ -190,15 +189,15 @@ names, visibility, opacity, and RGBA image data from `SpriteProject`. It is not
 a Photoshop timeline export and must not be described as lossless `.aseprite`
 round-trip conversion.
 
-PNG sequence output is planned as the first flattened non-Aseprite export path.
-Its requirements for filenames, frame order, timing metadata, browser-local
-downloads, and layer/tag limitations are documented in
+PNG sequence output is implemented as one deterministic flattened RGBA PNG per
+frame. Its filenames, frame order, browser-local downloads, and layer/tag
+limitations are documented in
 [png-sequence-output.md](png-sequence-output.md).
 
-Spritesheet PNG plus JSON output is planned as a later flattened export path.
-Its first subset should use a deterministic fixed grid, preserve transparency
-and frame durations, and document that layers, tags, and source editor metadata
-are not preserved by that exporter. See
+Spritesheet PNG plus JSON output is implemented as a deterministic row-major
+fixed grid with transparency, frame durations, and supported tags in the JSON
+sidecar. Layers and source editor metadata are not preserved in this flattened
+output. See
 [spritesheet-output.md](spritesheet-output.md).
 
 ## Bidirectional conversion policy

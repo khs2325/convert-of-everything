@@ -1,9 +1,8 @@
-# Bidirectional Conversion Planning
+# Bidirectional Conversion
 
-Status: planning only. Do not add Aseprite input, new exporters, or UI controls
-from this note alone.
+Status: first browser-local subset implemented.
 
-Bidirectional conversion means the app can eventually import from and export to
+Bidirectional conversion means the app can import from and export to
 multiple sprite formats through the shared `SpriteProject` model. It does not
 mean byte-for-byte round trips or full editor feature preservation.
 
@@ -16,13 +15,13 @@ exporter.
 
 ## Boundary
 
-All importers, including any future `.ase` or `.aseprite` reader, must decode
+All importers, including the implemented `.ase` and `.aseprite` reader, decode
 browser-selected files locally and produce `SpriteProject`. All exporters must
 consume `SpriteProject` and create local `Blob` downloads. Importers must not
 hand raw source chunks directly to exporters, and exporters must not inspect UI
 file objects or source-format parser state.
 
-For Aseprite input, the feasible path is:
+The implemented Aseprite input path is:
 
 ```text
 .ase/.aseprite bytes
@@ -34,14 +33,14 @@ For Aseprite input, the feasible path is:
 
 ## Output Needs From Aseprite Input
 
-Future output paths should be enabled only when their required `SpriteProject`
+Output paths are enabled only when their required `SpriteProject`
 semantics are present and tested.
 
 | Output path | Needs from imported Aseprite data | Notes |
 | --- | --- | --- |
 | Aseprite `.aseprite` | Canvas, ordered frames, durations, supported tags, normal layers, layer visibility/opacity, cel offsets, RGBA pixels | Generates a new file through the existing exporter subset; unsupported source chunks are not round-tripped. |
-| PNG sequence | A tested flattened frame compositor, frame order, canvas size, visible layer compositing, cel offsets | Exports pixels only; layer names, palettes, and editor metadata are not preserved. Timing and supported tags may be written only to an optional manifest as planned in [png-sequence-output.md](png-sequence-output.md). |
-| Spritesheet PNG + JSON | Same flattened compositor plus deterministic sheet layout and max-canvas limits | Exports pixels and timing metadata only. The planned first subset is fixed-grid and row-major as documented in [spritesheet-output.md](spritesheet-output.md). |
+| PNG sequence | A tested flattened frame compositor, frame order, canvas size, visible layer compositing, cel offsets | Exports one PNG per frame. Layer names, timing, tags, palettes, and editor metadata are not stored in the PNG files. See [png-sequence-output.md](png-sequence-output.md). |
+| Spritesheet PNG + JSON | Same flattened compositor plus deterministic sheet layout and max-canvas limits | Exports flattened pixels, frame rectangles, durations, and supported tags. The implemented subset is fixed-grid and row-major as documented in [spritesheet-output.md](spritesheet-output.md). |
 | GIF/APNG | Flattened frames, timing conversion rules, transparency/disposal limits, encoder-specific validation | Animated outputs cannot preserve Aseprite layer structure. |
 | PSD `.psd` | Layer order, names, visibility, opacity, selected-frame cel offsets, and RGBA pixels | Research-only. A minimal PSD writer may export a static layered frame, but Photoshop timeline metadata and `.aseprite` round-trip fidelity are out of scope. See [psd-output-feasibility.md](psd-output-feasibility.md). |
 | Layered future outputs | Layer order, names, visibility, opacity, cel offsets, frame coverage, and format-specific limits | Groups, blend modes, masks, slices, palettes, and color profiles need separate model/exporter scope before preservation is claimed. |

@@ -35,8 +35,8 @@ Costs:
 - The name `SpriteProject` must carry both current conversion and future
   interchange responsibilities.
 - Optional fields can accumulate unless there is a clear extension policy.
-- A future bidirectional `.aseprite` reader may need data that does not fit the
-  current model without a versioned expansion.
+- The implemented `.aseprite` reader rejects source data that does not fit the
+  current model; expanding that subset may require a versioned model change.
 
 ### Introduce `InternalSprite`
 
@@ -124,8 +124,8 @@ Introduce a versioned `InternalSprite` only if one of these becomes true:
 
 - Multiple exporters require model semantics that are incompatible with the
   existing `SpriteProject` shape.
-- A future `.aseprite` input path needs round-trip features that cannot be
-  represented as optional `SpriteProject` fields without ambiguous behavior.
+- A future `.aseprite` compatibility expansion needs round-trip features that
+  cannot be represented as optional `SpriteProject` fields without ambiguity.
 - Compatibility adapters become simpler than continued optional-field evolution.
 - A breaking change is needed for canvas, timeline, layer, or cel semantics.
 

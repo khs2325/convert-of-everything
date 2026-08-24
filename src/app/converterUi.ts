@@ -1,6 +1,10 @@
 import "../styles.css";
 
 import type { SpriteProject } from "../core/SpriteProject";
+import {
+  getAsepriteImportDiagnostic,
+  importAsepriteBytes,
+} from "../core/importers/aseprite";
 import { getApngImportDiagnostic, importApng } from "../core/importers/apng";
 import { getGifImportDiagnostic, importGif } from "../core/importers/gif";
 import {
@@ -66,6 +70,7 @@ import {
 } from "./supportLinks";
 
 type ConverterImporters = {
+  importAseprite?: typeof importAsepriteBytes;
   importApng: typeof importApng;
   importGif: typeof importGif;
   importKrita: typeof importKrita;
@@ -105,6 +110,7 @@ export type ConversionUiState = {
 };
 
 const DEFAULT_IMPORTERS: ConverterImporters = {
+  importAseprite: importAsepriteBytes,
   importApng,
   importGif,
   importKrita,
@@ -130,9 +136,13 @@ export const MODE_LABELS: Record<FileImportFormat, string> = {
   pixelorama: "Pixelorama project",
   krita: "Krita project",
   psd: "PSD project",
+  aseprite: "Aseprite project",
 };
 
 export function getImportDropInstructions(mode: FileImportFormat): string {
+  if (mode === "aseprite") {
+    return "Drop exactly one supported .ase or .aseprite file here, or choose one below.";
+  }
   if (mode === "piskel") {
     return "Drop exactly one .piskel file here, or choose one below.";
   }
@@ -157,7 +167,7 @@ export function getImportDropInstructions(mode: FileImportFormat): string {
   if (mode === "psd") {
     return "Drop exactly one .psd file from the RGB 8-bit raster-layer subset here, or choose one below.";
   }
-  return "Drag and drop PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, or PSD files here, or choose files below.";
+  return "Drag and drop a supported sprite source here, or choose files below.";
 }
 
 type ModeHelp = {
@@ -167,6 +177,13 @@ type ModeHelp = {
 };
 
 const MODE_HELP: Record<FileImportFormat, ModeHelp> = {
+  aseprite: {
+    expectedFiles: "Exactly one `.ase` or `.aseprite` 32-bit RGBA project from the documented subset.",
+    preserves:
+      "Supported frames, timing, normal raster layers, layer names, visibility, opacity, cel positions, pixels, and frame tags.",
+    limitations:
+      "Groups, tilemaps, special blend modes, ICC profiles, slices, and unsupported editor metadata are rejected instead of silently discarded.",
+  },
   "png-sequence": {
     expectedFiles: "One or more PNG files with the same canvas size.",
     preserves:
@@ -572,6 +589,13 @@ export function getSourceSelectionError(
   const pixeloramaCount = files.filter((file) => file.kind === "pxo").length;
   const kritaCount = files.filter((file) => file.kind === "kra").length;
   const psdCount = files.filter((file) => file.kind === "psd").length;
+  const asepriteCount = files.filter((file) => file.kind === "aseprite").length;
+
+  if (mode === "aseprite") {
+    return asepriteCount === 1 && files.length === 1
+      ? null
+      : "Aseprite mode requires exactly one .ase or .aseprite file.";
+  }
 
   if (mode === "png-sequence") {
     return pngCount > 0 && pngCount === files.length
@@ -641,6 +665,16 @@ export async function convertSourceFiles(
   const pngFiles = files
     .filter((file) => file.kind === "png")
     .map((file) => file.file);
+
+  if (mode === "aseprite") {
+    const asepriteFile = files.find((file) => file.kind === "aseprite");
+    if (asepriteFile === undefined || !("bytes" in asepriteFile)) {
+      throw new Error("Aseprite source file is missing.");
+    }
+    return (importers.importAseprite ?? importAsepriteBytes)(
+      new Uint8Array(asepriteFile.bytes),
+    );
+  }
 
   if (mode === "png-sequence") {
     return importers.importPngSequence(pngFiles);
@@ -720,6 +754,11 @@ export function getConversionSuccessStatus(
 ): string {
   const frameCount = project.frames.length;
   const frameNoun = frameCount === 1 ? "frame" : "frames";
+  if (mode === "aseprite") {
+    const layerCount = project.layers.length;
+    const layerNoun = layerCount === 1 ? "layer" : "layers";
+    return `Loaded ${frameCount} supported Aseprite ${frameNoun} and ${layerCount} ${layerNoun}. Choose an output format below.`;
+  }
   if (mode === "piskel") {
     const layerCount = project.layers.length;
     const layerNoun = layerCount === 1 ? "layer" : "layers";
@@ -790,6 +829,12 @@ export function getConversionErrorMessage(
   mode: FileImportFormat,
   error: unknown,
 ): string {
+  if (mode === "aseprite") {
+    const diagnostic = getAsepriteImportDiagnostic(error);
+    return diagnostic === null
+      ? "Aseprite import failed: Check that the file uses the documented 32-bit RGBA subset."
+      : `Aseprite import failed: ${diagnostic}`;
+  }
   if (mode === "spritesheet-json") {
     return getSpritesheetJsonImportDiagnostic(error) ??
       "Could not convert the spritesheet atlas. Check that the JSON uses a supported root-level frame layout.";
@@ -904,11 +949,11 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   hero.className = "hero";
   hero.setAttribute("aria-labelledby", "hero-heading");
   eyebrow.className = "eyebrow";
-  eyebrow.textContent = "Browser-based sprite conversion for Aseprite workflows";
+  eyebrow.textContent = "Browser-local conversion between sprite formats";
   title.id = "hero-heading";
-  title.textContent = "Sprite to Aseprite Converter";
+  title.textContent = "Convert of Everything";
   introduction.textContent =
-    "Convert supported sprite sources into editable Aseprite timelines: PNG sequences, spritesheets, project files, PSD raster-layer files, GIF animations, and APNG animations.";
+    "Convert supported sprite and animation sources through one normalized project model. Build editable Aseprite timelines or export Aseprite projects as PNG frames and spritesheets.";
   privacy.textContent =
     "Useful for pixel artists, game developers, and tool builders who need to rebuild timelines without sending artwork to a conversion server. Output compatibility depends on the source format and the documented importer subset.";
   privacy.className = "privacy-notice";
@@ -916,7 +961,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   for (const highlight of [
     "Runs in your browser",
     "No artwork uploads",
-    "Editable .aseprite output",
+    "Aseprite, PNG, and spritesheet output",
   ]) {
     const item = document.createElement("li");
     item.textContent = highlight;
@@ -957,7 +1002,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   converterHeading.textContent = "Converter workspace";
   converterHeader.className = "converter-section-header";
   converterIntro.textContent =
-    "Pick the import mode, add the required files, review validation messages and previews, then download the generated `.aseprite` file.";
+    "Pick an input mode, add the required files, review the normalized project, then choose Aseprite, PNG sequence, or spritesheet output.";
   converterHeader.append(converterHeading, converterIntro);
   workflowGrid.className = "workflow-grid";
 
@@ -1091,7 +1136,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   fileInput.accept = SUPPORTED_SOURCE_ACCEPT;
   fileInput.setAttribute(
     "aria-label",
-    "Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, or PSD sprite source files",
+    "Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite sprite source files",
   );
   sourceError.setAttribute("role", "alert");
   sourceError.setAttribute("aria-live", "assertive");
@@ -1131,7 +1176,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   convertPanel.className = "panel workflow-panel workflow-panel-convert";
   convertHeading.textContent = "3. Convert and download";
   convertButton.type = "button";
-  convertButton.textContent = "Convert to .aseprite";
+  convertButton.textContent = "Start conversion";
   convertButton.disabled = true;
   conversionProgress.className = "conversion-progress";
   conversionProgress.setAttribute("aria-label", "Conversion progress");
@@ -1494,6 +1539,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     }
     invalidateConversion();
     selectedFiles = [...files];
+    exportUi.setFilenameStem?.(selectedFiles[0]?.file.name ?? "sprite-project");
     fileInput.value = "";
     renderSelectedFiles();
     syncGridSource();
@@ -1595,7 +1641,9 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
       isWorking: true,
       canConvert: true,
       status:
-        mode === "piskel"
+        mode === "aseprite"
+          ? "Reading and validating the Aseprite project browser-locally. This may take a while."
+          : mode === "piskel"
           ? "Converting the Piskel project browser-locally. This may take a while."
           : mode === "pixil"
             ? "Converting the Pixil project browser-locally. This may take a while."
@@ -1642,7 +1690,9 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
         isWorking: false,
         canConvert: true,
         status:
-          mode === "piskel"
+          mode === "aseprite"
+            ? "Aseprite conversion did not complete."
+            : mode === "piskel"
             ? "Piskel conversion did not complete."
             : mode === "pixil"
               ? "Pixil conversion did not complete."

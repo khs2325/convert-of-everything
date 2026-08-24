@@ -1,6 +1,6 @@
 # Browser Memory Limits
 
-Sprite to Aseprite Converter keeps selected artwork, metadata, decoded pixels,
+Convert of Everything keeps selected artwork, metadata, decoded pixels,
 conversion state, previews, and generated `.aseprite` bytes in the browser.
 There is no server upload, remote image-processing fallback, or telemetry path
 for working around memory limits.
@@ -71,7 +71,7 @@ valid-looking file can still contain many entries, nested metadata, repeated
 pixel payloads, or compressed chunks that expand beyond what a browser tab can
 hold.
 
-## PSD And Future Aseprite Input
+## PSD And Aseprite Input
 
 PSD can use substantially more memory than simple flat formats because source
 layers may be stored as separate channel data before they become RGBA
@@ -82,9 +82,10 @@ features such as masks, effects, groups, smart objects, more color modes,
 animation timelines, or PSB-sized documents, so unsupported data must remain
 bounded and rejected rather than flattened into a misleading result.
 
-Future `.ase` or `.aseprite` input has similar risks. A reader would need to
-bound file, frame, chunk, layer, cel, linked-cel, compressed-cel, tilemap, and
-decoded-pixel totals before producing `SpriteProject`. Bidirectional workflows
+Implemented `.ase` and `.aseprite` input has similar risks. The reader bounds
+file, frame, chunk, layer, cel, palette, compressed-cel, and decoded-pixel
+totals before producing `SpriteProject`; unsupported linked-cel and tilemap
+structures are rejected. Bidirectional workflows
 may also hold the source file, decoded input model, edited `SpriteProject`, and
 new exported bytes at the same time. Documentation and UI should describe this
 as converting supported frames and preserving layers when the source contains

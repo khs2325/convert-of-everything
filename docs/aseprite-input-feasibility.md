@@ -1,9 +1,15 @@
-# LibreSprite/Aseprite `.ase` and `.aseprite` Input Feasibility
+# LibreSprite/Aseprite `.ase` and `.aseprite` Input Subset
 
-Status: researched only. Recommendation: feasible later, but only after
-fixture-backed binary-reader work is explicitly scoped.
+Status: implemented for the documented 32-bit RGBA raster subset. The reader
+is backed by deterministic writer/reader tests and remains intentionally
+fail-closed for unsupported editor features.
 
 Research date: 2026-06-27.
+
+Historical note: sections that use “should” or “future task” preserve the
+pre-implementation design record. The implemented subset is the compressed-cel
+RGBA path summarized above and in [supported-formats.md](supported-formats.md);
+raw and linked cels remain unsupported.
 
 Primary references:
 
@@ -15,10 +21,7 @@ Primary references:
 - Bidirectional conversion planning: [bidirectional-conversion.md](bidirectional-conversion.md)
 - Existing product wording policy: [product-spec.md](product-spec.md)
 
-## Recommendation
-
-Do not implement `.ase` or `.aseprite` input in this task. Keep this as a
-research note until deterministic fixtures exist for the exact reader subset.
+## Implementation boundary
 
 Input support is feasible because the Aseprite specification documents a
 chunked little-endian binary format with explicit headers, frame records, layer

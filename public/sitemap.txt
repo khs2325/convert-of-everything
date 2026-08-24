@@ -1,5 +1,6 @@
 https://sprite-to-aseprite.pages.dev/
 https://sprite-to-aseprite.pages.dev/guides/
+https://sprite-to-aseprite.pages.dev/guides/aseprite-to-png-spritesheet/
 https://sprite-to-aseprite.pages.dev/guides/png-sequence-to-aseprite/
 https://sprite-to-aseprite.pages.dev/guides/spritesheet-to-aseprite/
 https://sprite-to-aseprite.pages.dev/guides/pixilart-to-aseprite/
