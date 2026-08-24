@@ -973,7 +973,7 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   eyebrow.className = "eyebrow";
   eyebrow.textContent = "Browser-local conversion between sprite formats";
   title.id = "hero-heading";
-  title.textContent = "Convert of Everything";
+  title.textContent = "Sprite Converter";
   introduction.textContent =
     "Convert supported sprite and animation sources through one normalized project model. Build editable Aseprite timelines or export Aseprite projects as PNG frames and spritesheets.";
   privacy.textContent =

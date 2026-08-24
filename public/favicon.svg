@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Convert of Everything">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Sprite Converter">
   <rect width="64" height="64" rx="12" fill="#4e1f6e"/>
-  <path d="M27 18a14 14 0 1 0 0 28h5v-8h-5a6 6 0 1 1 0-12h5v-8z" fill="#98e8de"/>
-  <path d="M34 25h13l-5-5 5-5 13 14-13 14-5-5 5-5H34z" fill="#45a9a9" transform="scale(.72) translate(15 12)"/>
+  <path d="M13 19h29l-6-6 6-6 15 16-15 16-6-6 6-6H13z" fill="#98e8de"/>
+  <path d="M51 45H22l6 6-6 6L7 41l15-16 6 6-6 6h29z" fill="#45a9a9"/>
 </svg>

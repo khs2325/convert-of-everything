@@ -1,6 +1,6 @@
 # Manual usage guide
 
-Convert of Everything rebuilds an editable Aseprite timeline from PNG
+Sprite Converter rebuilds an editable Aseprite timeline from PNG
 frames, spritesheets, a supported Piskel project, a supported OpenRaster
 project, a supported Pixelorama project, a supported Pixil/Pixilart project, a
 supported Krita project, or a supported PSD project or GIF/APNG animation.

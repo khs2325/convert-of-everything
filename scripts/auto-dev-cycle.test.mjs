@@ -747,7 +747,7 @@ describe("product completeness audits and task generation", () => {
       writeWorkspaceFile(workspace, "src/index.ts", `
         import { mountConverterUi } from "./app/converter";
         const appRoot = document.querySelector<HTMLElement>("#app");
-        if (appRoot === null) throw new Error("The Sprite to Aseprite app root is missing.");
+        if (appRoot === null) throw new Error("The Sprite Converter app root is missing.");
         mountConverterUi(appRoot);
       `);
       writeWorkspaceFile(
@@ -827,7 +827,7 @@ describe("product completeness audits and task generation", () => {
       markNormalRoadmapComplete(workspace);
       writeWorkspaceFile(workspace, "package.json", JSON.stringify({ scripts: { dev: "vite" } }));
       writeWorkspaceFile(workspace, "index.html", '<main><p>Automation framework installed.</p></main><script type="module" src="/src/index.ts"></script>');
-      writeWorkspaceFile(workspace, "src/index.ts", 'export const projectName = "sprite-to-aseprite";\n');
+      writeWorkspaceFile(workspace, "src/index.ts", 'export const projectName = "sprite-converter";\n');
       const context = collectProjectPlanningContext(workspace);
       const expectedTaskId = nextTaskIdForContext(context);
       const audit = auditProductCompleteness({ rootDirectory: workspace, context });

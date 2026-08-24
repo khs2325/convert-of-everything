@@ -51,7 +51,7 @@ function structuredData(page, canonical) {
     },
     isPartOf: {
       "@type": "WebSite",
-      name: "Convert of Everything",
+      name: "Sprite Converter",
       url: `${ORIGIN}/`,
     },
     ...(page.kind === "converter" ? {
@@ -78,14 +78,14 @@ export function renderPage(page, content) {
     <meta name="google-adsense-account" content="ca-pub-7611560030784765">
     <link rel="canonical" href="${canonical}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Convert of Everything">
+    <meta property="og:site_name" content="Sprite Converter">
     <meta property="og:title" content="${escapeHtml(page.title)}">
     <meta property="og:description" content="${escapeHtml(page.description)}">
     <meta property="og:url" content="${canonical}">
     <meta property="og:image" content="${ORIGIN}/og.png">
-    <meta property="og:image:width" content="1730">
+    <meta property="og:image:width" content="1731">
     <meta property="og:image:height" content="909">
-    <meta property="og:image:alt" content="Convert of Everything browser-local sprite conversion preview">
+    <meta property="og:image:alt" content="Sprite Converter browser-local sprite conversion preview">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(page.title)}">
     <meta name="twitter:description" content="${escapeHtml(page.description)}">
@@ -97,7 +97,7 @@ export function renderPage(page, content) {
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
     <header class="page-header">
-      <a class="brand" href="/" aria-label="Convert of Everything home"><span aria-hidden="true">C↔E</span><strong>Convert of Everything</strong></a>
+      <a class="brand" href="/" aria-label="Sprite Converter home"><span aria-hidden="true">S↔C</span><strong>Sprite Converter</strong></a>
       <nav class="primary-nav" aria-label="Primary navigation">${navigation(page.route)}</nav>
     </header>
     <main id="content" class="reading-shell">
@@ -114,7 +114,7 @@ export function renderPage(page, content) {
     </main>
     <footer class="page-footer">
       <p>Independent open-source project · MIT licensed · Not affiliated with Aseprite.</p>
-      <nav aria-label="Policy links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/about/#contact">Contact</a><a href="https://github.com/khs2325/convert-of-everything">Source &amp; tests</a></nav>
+      <nav aria-label="Policy links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/about/#contact">Contact</a><a href="https://github.com/khs2325/sprite-converter">Source &amp; tests</a></nav>
     </footer>
   </body>
 </html>`;

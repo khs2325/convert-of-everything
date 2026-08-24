@@ -95,6 +95,10 @@ Default manifest name:
 
 Recommended manifest shape:
 
+The `sprite-to-aseprite` prefix below is a stable version-1 format identifier,
+not the current product name. Keep it unchanged so existing manifests and
+consumers remain compatible after the Sprite Converter rebrand.
+
 ```json
 {
   "format": "sprite-to-aseprite/png-sequence-manifest",
