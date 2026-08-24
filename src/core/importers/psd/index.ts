@@ -1375,7 +1375,7 @@ function convertPsdDocumentToSpriteProject(document: PsdParserDocument): SpriteP
     height: document.height,
     colorMode: "rgba",
     frames: document.frames.map((frame) => ({ ...frame })),
-    layers,
+    layers: layers.reverse(),
   };
 }
 

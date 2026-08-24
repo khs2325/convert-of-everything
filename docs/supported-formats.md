@@ -1,7 +1,7 @@
 # Supported Formats Matrix
 
 This matrix summarizes browser-local input support for converting documented
-source subsets into `.aseprite` files. "Supported" means the app supports the
+source subsets into the shared `SpriteProject` model and a selected output. "Supported" means the app supports the
 listed subset, not the whole source format. Unsupported source features are
 rejected clearly or documented as omitted when they do not affect the converted
 `SpriteProject`.
@@ -22,6 +22,7 @@ files to a server or send them to a remote image-processing service.
 
 | Input | Status | Layer support | Animation support | Main documented subset and limitations |
 | --- | --- | --- | --- | --- |
+| Aseprite `.ase` or `.aseprite` | Supported subset | Preserves direct normal raster layer names, bottom-to-top order, visibility, opacity, positioned RGBA cels, and supported frame tags. | Rebuilds ordered frames and positive millisecond durations. | Accepts 32-bit RGBA documents with compressed image cels and square pixels. Raw or linked cels, indexed/grayscale documents, groups, nested/background/reference/tilemap layers, non-normal blend modes, per-cel opacity or z-index, ICC/fixed-gamma profiles, slices, tilesets, external files, and non-empty user data are rejected. Unsupported raw chunks are not round-tripped. |
 | PNG sequence | Supported subset | No source layer data. Creates one normal layer named `Main`. | Rebuilds one frame per PNG in supplied order. Uses configurable timing, defaulting to 100 ms. | Every PNG must be valid and share the same dimensions. Flat PNGs cannot recover original layers. |
 | Spritesheet grid | Supported subset | No source layer data. Creates one normal layer named `Main`. | Rebuilds frames from regular grid cells in row-major or column-major order, defaulting to 100 ms per frame. | One PNG only. The configured frame size, rows, and columns must exactly cover the image. |
 | Spritesheet PNG + JSON | Supported subset | No source layer data. Creates one normal layer named `Main`. | Rebuilds frames from JSON rectangles. Per-frame durations are supported and default to 100 ms. Supported Aseprite frame tags may be preserved. | Accepts the documented Aseprite-style `frames` array or object map. Rectangles must fit the PNG. The supported TexturePacker rotated and trimmed cases require complete, consistent metadata. Other atlas schemas, including Phaser multi-atlas JSON, are not converted. |

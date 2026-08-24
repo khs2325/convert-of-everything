@@ -4,6 +4,7 @@ export type SpriteProject = {
   colorMode: "rgba";
   frames: SpriteFrame[];
   frameTags?: SpriteFrameTag[];
+  /** Normal raster layers ordered back-to-front (bottommost first). */
   layers: SpriteLayer[];
 };
 

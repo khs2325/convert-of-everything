@@ -32,6 +32,34 @@ export const INFORMATION_PAGE_LINKS: readonly SitePageLink[] = [
 
 export const SUPPORTED_FORMATS: readonly FormatSupport[] = [
   {
+    input: "Aseprite project",
+    requiredFiles: "Exactly one `.ase` or `.aseprite` file from the supported 32-bit RGBA raster subset.",
+    animation: "Yes, supported frames and frame tags are imported.",
+    layerPreservation:
+      "Preserves supported normal raster layers, names, order, visibility, opacity, positions, and pixels.",
+    duration: "Preserves supported per-frame millisecond durations.",
+    limitations:
+      "Groups, tilemaps, special blend modes, ICC profiles, slices, and unsupported editor metadata are rejected.",
+    supportLevel: "Limited support",
+    guide: {
+      whenToUse:
+        "Use this when you need flattened PNG frames or a PNG+JSON spritesheet from a supported Aseprite project.",
+      preparation: [
+        "Keep a backup of the original project.",
+        "Use 32-bit RGBA normal raster layers.",
+        "Remove unsupported groups, tilemaps, special blend modes, and metadata from a copy before import.",
+      ],
+      expectedOutput:
+        "A normalized preview that can be downloaded as a new Aseprite file, PNG sequence, or spritesheet PNG + JSON.",
+      commonMistakes: [
+        "Expecting every Aseprite editor feature to round-trip through the normalized model.",
+        "Treating flattened PNG output as if it still contained editable layers.",
+      ],
+      troubleshooting:
+        "If the file is rejected, simplify a copy to normal 32-bit RGBA raster layers and retry.",
+    },
+  },
+  {
     input: "PNG sequence",
     requiredFiles: "One or more `.png` files with the same canvas size.",
     animation: "Yes, each PNG becomes one frame.",
@@ -478,7 +506,7 @@ export function createModeDecisionHelper(document: Document): HTMLElement {
     createCard(document, "I have a project file", [
       createParagraph(
         document,
-        "Select the matching project mode for Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, or PSD. Supported layers are preserved only when the source file contains supported layer data.",
+        "Select the matching project mode for Aseprite, Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, or PSD. Supported layers are preserved only when the source file contains supported layer data.",
       ),
     ]),
     createCard(document, "I have GIF or APNG animation", [
@@ -621,7 +649,7 @@ export function createHomepageGuide(document: Document): HTMLElement {
   localHeading.textContent = "What happens inside the browser";
   const localExplanation = createParagraph(
     document,
-    "After you choose files, browser APIs read their bytes in the current tab. The selected importer validates the format, decodes supported pixels and metadata, and constructs a SpriteProject with canvas size, frames, durations, layers, and positioned cels. The Aseprite writer then serializes that validated model into a downloadable Blob. The conversion path has no upload endpoint, cloud artwork store, or remote image-processing fallback.",
+    "After you choose files, browser APIs read their bytes in the current tab. The selected importer validates the format, decodes supported pixels and metadata, and constructs a SpriteProject with canvas size, frames, durations, layers, and positioned cels. The selected exporter then creates the chosen browser-local output as one or more downloadable Blob objects. The conversion path has no upload endpoint, cloud artwork store, or remote image-processing fallback.",
   );
   const privacyExplanation = document.createElement("p");
   const privacyLink = document.createElement("a");
@@ -645,8 +673,8 @@ export function createHomepageGuide(document: Document): HTMLElement {
     "Identify the richest source you still have. Prefer a supported project file for layers, atlas metadata for trimmed placement and timing, or separate PNG files for an unambiguous frame sequence.",
     "Choose the importer that matches the actual file instead of renaming an extension. Review the mode guidance for required companion files and unsupported features.",
     "Inspect filenames, canvas dimensions, grid fit, frame order, transparency, and timing before converting. Fix inconsistent source data in the original editor when possible.",
-    "Convert once, download the generated .aseprite file, and open it in Aseprite. The browser download is the handoff point; the source is not replaced or edited.",
-    "Compare canvas size, frame count, frame order, durations, transparency, cel positions, layer order, names, visibility, and opacity against the source capabilities.",
+    "Choose an output, prepare it, download every generated file, and verify it in Aseprite or the matching image workflow. The browser download is the handoff point; the source is not replaced or edited.",
+    "Compare canvas size, frame count and order, transparency, and pixels for every output; verify timing and layer metadata only where the selected output preserves it.",
     "If validation fails, keep the exact safe error message and make the smallest synthetic reproduction you can. Troubleshooting is safer than deleting metadata until an invalid file happens to import.",
   ]) {
     const item = document.createElement("li");
@@ -686,7 +714,7 @@ export function createHomepageGuide(document: Document): HTMLElement {
     createHomepageQuestion(
       document,
       "Does conversion upload the selected artwork?",
-      "No. Parsing, image decoding, validation, preview generation, Aseprite serialization, and download occur in the browser tab. The project intentionally has no conversion server or remote fallback for files that exceed local limits.",
+      "No. Parsing, image decoding, validation, preview generation, selected-output encoding, and download occur in the browser tab. The project intentionally has no conversion server or remote fallback for files that exceed local limits.",
     ),
   );
 
@@ -800,8 +828,8 @@ export function createInformationalPages(document: Document): HTMLElement {
       "The matching importer converts supported data into the internal SpriteProject model.",
       "Validation checks dimensions, frame references, layers, cels, and unsupported variants.",
       "The preview renders the rebuilt timeline in the page.",
-      "The Aseprite exporter writes a `.aseprite` file from SpriteProject.",
-      "Your browser downloads the generated file locally.",
+      "The selected exporter creates an Aseprite project, flattened PNG frames, or a spritesheet PNG + JSON from SpriteProject.",
+      "Your browser downloads the generated file or files locally.",
     ]),
     createDefinitionList(document, [
       [
@@ -847,7 +875,7 @@ export function createInformationalPages(document: Document): HTMLElement {
     ),
     createParagraph(
       document,
-      "Selected files are read with browser APIs, converted in the page, and used to generate a local `.aseprite` download.",
+      "Selected files are read with browser APIs, converted in the page, and used to generate the selected local output file or files.",
     ),
     createParagraph(
       document,
@@ -976,7 +1004,7 @@ export function createInformationalPages(document: Document): HTMLElement {
       ],
       [
         "Which formats preserve layers?",
-        "Structured project formats can preserve supported layers when the source contains supported layer data: Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD have documented limited subsets.",
+        "Structured project formats can preserve supported layers when the source contains supported layer data: Aseprite, Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD have documented limited subsets.",
       ],
       [
         "Can animations be converted?",
@@ -1016,11 +1044,11 @@ export function createInformationalPages(document: Document): HTMLElement {
   const about = createSection(document, "about", "About", [
     createParagraph(
       document,
-      "Sprite to Aseprite Converter is an open-source browser tool for turning supported sprite sources into editable `.aseprite` files.",
+      "Convert of Everything is an open-source browser tool for moving supported sprite projects between editable Aseprite, PNG sequence, and spritesheet workflows.",
     ),
     createParagraph(
       document,
-      "The current scope is focused: import supported files, rebuild a SpriteProject timeline, validate it, preview it, and export Aseprite output in the browser.",
+      "The current scope is focused: import supported files, rebuild and validate a SpriteProject timeline, preview it, and export Aseprite, PNG sequence, or spritesheet PNG + JSON output in the browser.",
     ),
     (() => {
       const paragraph = document.createElement("p");
@@ -1028,8 +1056,8 @@ export function createInformationalPages(document: Document): HTMLElement {
         "Project repository: ",
         createExternalLink(
           document,
-          "https://github.com/khs2325/sprite-to-aseprite",
-          "khs2325/sprite-to-aseprite on GitHub",
+          "https://github.com/khs2325/convert-of-everything",
+          "khs2325/convert-of-everything on GitHub",
         ),
       );
       return paragraph;

@@ -316,11 +316,11 @@ describe("validateSpriteProject", () => {
     );
   });
 
-  it("rejects invalid cel placement and RGBA data", () => {
+  it("rejects non-integer cel placement and invalid RGBA data", () => {
     const project = createValidProject();
     const cel = project.layers[0].cels[0];
-    cel.x = 3;
-    cel.y = -1;
+    cel.x = 1.5;
+    cel.y = Number.MAX_SAFE_INTEGER + 1;
     cel.imageData = {
       ...createImageData(2, 2),
       data: new Uint8ClampedArray(3),
@@ -329,37 +329,18 @@ describe("validateSpriteProject", () => {
     expect(validateSpriteProject(project)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ code: "invalid_cel_image_data" }),
+        expect.objectContaining({ code: "invalid_cel_x" }),
         expect.objectContaining({ code: "invalid_cel_y" }),
       ]),
     );
   });
 
-  it("rejects a cel image that extends beyond the canvas", () => {
+  it("accepts signed and partially out-of-canvas cel placement", () => {
     const project = createValidProject();
-    project.layers[0].cels[0].x = 3;
-
-    expect(validateSpriteProject(project)).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: "cel_out_of_bounds",
-          path: "layers[0].cels[0].x",
-        }),
-      ]),
-    );
-  });
-
-  it("rejects a cel image that extends below the canvas", () => {
-    const project = createValidProject();
+    project.layers[0].cels[0].x = -3;
     project.layers[0].cels[0].y = 3;
 
-    expect(validateSpriteProject(project)).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: "cel_out_of_bounds",
-          path: "layers[0].cels[0].y",
-        }),
-      ]),
-    );
+    expect(validateSpriteProject(project)).toEqual([]);
   });
 
   it("returns a clear error instead of throwing for non-object input", () => {

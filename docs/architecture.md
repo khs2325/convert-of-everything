@@ -2,7 +2,7 @@
 
 ## Main idea
 
-Sprite to Aseprite Converter is a static browser app. User artwork and metadata
+Convert of Everything is a static browser app. User artwork and metadata
 are read, decoded, converted, previewed, and exported in the browser. The app
 does not upload source files to a server or call remote image-processing APIs.
 
@@ -15,8 +15,8 @@ Browser-selected files
   -> format importer
   -> SpriteProject
   -> preview, frame timing, and layer-name UI
-  -> Aseprite exporter
-  -> local Blob download
+  -> selected Aseprite, PNG-sequence, or spritesheet exporter
+  -> local Blob download(s)
 ```
 
 ## Internal model
@@ -114,6 +114,10 @@ metadata should be expressed as `SpriteProject` fields before any export step.
 - PSD: parses the documented RGB 8-bit PSD raster-layer subset, converts
   supported layers into one-frame full-canvas cels, and preserves supported
   layer names, order, visibility, opacity, and pixels.
+- Aseprite: parses the documented 32-bit RGBA subset with direct normal raster
+  layers, compressed image cels, frame timing, and supported tags. Unsupported
+  editor structures and raw source chunks are rejected rather than silently
+  treated as preserved.
 
 Flat formats such as PNG sequences, spritesheets, GIF, and APNG do not contain
 editable source-layer structure. These importers rebuild timelines and convert
@@ -172,17 +176,17 @@ The download UI wraps exported bytes in a local `Blob` with the Aseprite MIME
 type, creates a local object URL, clicks a download link, and revokes the URL.
 No exported artwork is uploaded.
 
-## Future output selector
+## Output selector
 
-Additional output formats should be added through exporter modules that consume
-`SpriteProject`, not by changing importers or binding source formats directly to
-download code. The selector plan in
-[output-format-selector.md](output-format-selector.md) keeps Aseprite as the
-only enabled output until another exporter has documented limits, tests, and
-browser-local Blob download behavior.
+The output selector offers Aseprite, PNG sequence, and spritesheet PNG + JSON.
+Each exporter consumes `SpriteProject`, validates its own limits, and returns
+bytes for browser-local Blob downloads. PNG outputs use the shared tested frame
+compositor and intentionally flatten visible layers. Future formats must follow
+the same boundary instead of binding source formats directly to download code.
+See [output-format-selector.md](output-format-selector.md).
 
 Bidirectional planning is tracked in
-[bidirectional-conversion.md](bidirectional-conversion.md). Even when future
-`.ase` or `.aseprite` input exists, imported data should cross the same
+[bidirectional-conversion.md](bidirectional-conversion.md). Implemented
+`.ase` and `.aseprite` input crosses the same
 `SpriteProject` boundary before export; output files are generated from the
 supported model fields, not from preserved raw source chunks.

@@ -1,4 +1,4 @@
-You are working in the Sprite to Aseprite Converter repository.
+You are working in the Convert of Everything repository.
 
 Read AGENTS.md first and follow it strictly.
 

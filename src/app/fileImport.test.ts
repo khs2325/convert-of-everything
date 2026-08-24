@@ -276,6 +276,18 @@ describe("bindFileImportControl", () => {
     ).toBe("psd");
   });
 
+  it("advertises and classifies Aseprite sources", () => {
+    const acceptedTypes = SUPPORTED_SOURCE_ACCEPT.split(",");
+    expect(acceptedTypes).toEqual(expect.arrayContaining([
+      ".ase",
+      ".aseprite",
+      "application/x-aseprite",
+    ]));
+    expect(getSourceKind({ name: "scene.ASEPRITE", type: "" })).toBe("aseprite");
+    expect(getSourceKind({ name: "scene", type: "application/x-aseprite" }))
+      .toBe("aseprite");
+  });
+
   it("reads PNG and JSON files locally with browser File APIs", async () => {
     const input = createInput();
     const errorOutput = createOutput();
@@ -349,6 +361,7 @@ describe("bindFileImportControl", () => {
     ["pixelorama", "sprite.pxo", "application/x-pixelorama", "Selected 1 Pixelorama project"],
     ["krita", "sprite.kra", "application/x-krita", "Selected 1 Krita project"],
     ["psd", "sprite.psd", "image/vnd.adobe.photoshop", "Selected 1 PSD project. The supported RGB 8-bit raster-layer subset will be checked browser-locally."],
+    ["aseprite", "sprite.aseprite", "application/x-aseprite", "Selected 1 Aseprite project. The supported 32-bit RGBA subset will be checked browser-locally."],
     ["pixil", "sprite.pixil", "application/octet-stream", "Selected 1 Pixil project. Ready to convert browser-locally."],
   ] as const)("reads one %s source locally", async (format, name, type, status) => {
     const statusOutput = createOutput();
@@ -396,9 +409,27 @@ describe("bindFileImportControl", () => {
     expect(errorOutput).toMatchObject({
       hidden: false,
       textContent:
-        'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, or PSD files only.',
+        'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite files only.',
     });
     expect(statusOutput.hidden).toBe(true);
+  });
+
+  it("rejects an oversized Aseprite file before reading its bytes", async () => {
+    const input = createInput();
+    const errorOutput = createOutput();
+    const onFilesImported = vi.fn();
+    const file = new File([], "huge.aseprite", { type: "application/x-aseprite" });
+    Object.defineProperty(file, "size", { value: 64 * 1024 * 1024 + 1 });
+    const read = vi.spyOn(file, "arrayBuffer");
+    const control = bindFileImportControl(input, errorOutput, createOutput(), {
+      format: "aseprite",
+      onFilesImported,
+    });
+
+    expect(await control.selectFiles([file])).toBe(false);
+    expect(read).not.toHaveBeenCalled();
+    expect(onFilesImported).not.toHaveBeenCalled();
+    expect(errorOutput.textContent).toContain("exceeds the 67108864-byte");
   });
 
   it("shows format-specific importer errors without displaying file contents", async () => {
@@ -912,7 +943,7 @@ describe("bindFileImportControl", () => {
 
     await vi.waitFor(() => expect(errorOutput.hidden).toBe(false));
     expect(errorOutput.textContent).toBe(
-      'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, or PSD files only.',
+      'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite files only.',
     );
     expect(onFilesImported).not.toHaveBeenCalled();
   });
@@ -935,7 +966,7 @@ describe("bindFileImportControl", () => {
 
     await vi.waitFor(() => expect(errorOutput.hidden).toBe(false));
     expect(errorOutput.textContent).toBe(
-      'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, or PSD files only.',
+      'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite files only.',
     );
     expect(readPng).not.toHaveBeenCalled();
     expect(onFilesImported).not.toHaveBeenCalled();

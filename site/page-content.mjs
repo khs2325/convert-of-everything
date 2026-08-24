@@ -4,6 +4,7 @@ export const PAGE_CONTENT = {
 
     <h2>Start with the file you actually have</h2>
     <div class="card-grid">
+      <a class="link-card" href="/guides/aseprite-to-png-spritesheet/"><strong>Aseprite to PNG outputs</strong><span>Read a supported 32-bit RGBA project and create flattened frame PNGs or a spritesheet with JSON metadata.</span></a>
       <a class="link-card" href="/guides/png-sequence-to-aseprite/"><strong>Separate PNG frames</strong><span>Use a PNG sequence when each image is one complete animation frame and every canvas has compatible dimensions.</span></a>
       <a class="link-card" href="/guides/spritesheet-to-aseprite/"><strong>One packed spritesheet</strong><span>Use an exact grid for equal cells, or matching JSON when an atlas uses rectangles, trimming, or rotation.</span></a>
       <a class="link-card" href="/guides/pixilart-to-aseprite/"><strong>Pixilart 2.7 project</strong><span>Use the observed genuine 2.7 project structure to preserve the supported cross-frame raster layers.</span></a>
@@ -15,6 +16,7 @@ export const PAGE_CONTENT = {
     <h2>Pixels and editor structure answer different questions</h2>
     <p>The converter maps every accepted source into one internal <code>SpriteProject</code>. Rendered image formats mainly answer “what pixels should appear at this moment?” Project formats may also answer “which layer owns these pixels, where is its cel, and what opacity applies?” Conversion cannot reconstruct an answer the source no longer stores.</p>
     <div class="table-scroll"><table><caption>What the main source categories can contribute</caption><thead><tr><th>Source category</th><th>Frames</th><th>Timing</th><th>Layers</th><th>Best use</th></tr></thead><tbody>
+      <tr><td>Supported Aseprite project</td><td>Supported timeline frames</td><td>Per-frame durations and supported tags</td><td>Supported normal raster layers</td><td>PNG sequence or spritesheet output</td></tr>
       <tr><td>PNG sequence</td><td>One per selected image</td><td>Starts at the converter default; editable later</td><td>One generated layer</td><td>Predictable frame-by-frame exports</td></tr>
       <tr><td>Grid spritesheet</td><td>One per equal cell</td><td>Starts at the converter default</td><td>One generated layer</td><td>Uniform game-export sheets</td></tr>
       <tr><td>PNG + supported JSON</td><td>From metadata rectangles</td><td>Supported per-frame durations and Aseprite frame tags</td><td>One generated layer</td><td>Trimmed or rotated atlases</td></tr>
@@ -23,7 +25,7 @@ export const PAGE_CONTENT = {
     </tbody></table></div>
 
     <h2>When layers matter</h2>
-    <p>Choose the original project file before exporting a flat image. The current importers can preserve supported layer data from Pixilart 2.7, Piskel, Pixelorama, OpenRaster, Krita, and PSD inputs. That statement is intentionally conditional: groups, masks, effects, vector objects, tilemaps, non-normal blends, and other editor-specific features are often rejected because the internal model cannot represent them faithfully.</p>
+    <p>Choose the original project file before exporting a flat image. The current importers can preserve supported layer data from Aseprite, Pixilart 2.7, Piskel, Pixelorama, OpenRaster, Krita, and PSD inputs. That statement is intentionally conditional: groups, masks, effects, vector objects, tilemaps, non-normal blends, and other editor-specific features are often rejected because the internal model cannot represent them faithfully.</p>
     <p class="callout warning"><strong>Flat means flat.</strong> PNG, GIF, APNG, and spritesheet pixels cannot reveal whether a red pixel came from an “Ink” layer, a “Color” layer, or a flattened effect. The converter rebuilds a timeline; it does not claim to recover absent layers.</p>
 
     <h2>When timing matters</h2>
@@ -31,7 +33,31 @@ export const PAGE_CONTENT = {
 
     <h2>A practical decision rule</h2>
     <ol class="steps"><li>If the original editor project opens and its format is supported, start there when layers matter.</li><li>If you only need visible animation and have separate frames, choose the PNG sequence.</li><li>If frames share one image, use grid mode only when every cell is equal and the grid covers the entire sheet exactly.</li><li>If a matching atlas JSON exists, prefer it for packed, trimmed, rotated, or individually timed frames.</li><li>If the source is GIF or APNG, expect a faithful supported compositing result on one layer, not the authoring structure.</li></ol>
-    <p>After choosing a workflow, read its detailed guide and keep the original source until the downloaded file has been inspected in Aseprite. If selection or validation fails, continue with the <a href="/troubleshooting/">symptom-based troubleshooting guide</a>.</p>
+    <p>After choosing a workflow, read its detailed guide and keep the original source until the downloaded output has been inspected in Aseprite or the matching image workflow. If selection or validation fails, continue with the <a href="/troubleshooting/">symptom-based troubleshooting guide</a>.</p>
+  `,
+
+  "/guides/aseprite-to-png-spritesheet/": `
+    <p>An Aseprite project can contain an editable timeline, raster layers, positioned cels, timing, and frame tags. Convert of Everything reads a deliberately bounded part of that structure into the same <code>SpriteProject</code> model used by every other importer. You can then create a new Aseprite file, separate flattened PNG frames, or a row-major PNG spritesheet with JSON metadata. All parsing, decompression, compositing, encoding, and downloads stay in the browser tab.</p>
+
+    <h2>What the current reader accepts</h2>
+    <p>The reader accepts <code>.ase</code> and <code>.aseprite</code> files that use 32-bit RGBA pixels and direct normal raster layers. It validates the file header, every frame and chunk envelope, frame durations, layer records, cel references, compressed pixel lengths, and supported frame tags before returning a project. Layer names, back-to-front order, visibility, opacity, signed cel positions, frame timing, RGBA pixels, and forward, reverse, or ping-pong tags are mapped into the normalized model.</p>
+    <p>File, canvas, frame, layer, cel, chunk, and decoded-byte limits are checked before large allocations. Compressed cels are inflated sequentially with a bounded expected output length. A corrupt compressed payload produces a content-safe error rather than exposing source bytes, local paths, or arbitrary decompressor details.</p>
+
+    <h2>Why some Aseprite files are rejected</h2>
+    <p>The current model does not represent every editor feature. Groups, nested layers, tilemaps, non-normal blend modes, background or reference layer semantics, per-cel opacity, custom cel z-index, ICC profiles, fixed gamma, slices, tilesets, external files, and non-empty user data are outside this subset. The reader rejects structures that cannot be mapped accurately instead of silently presenting them as preserved.</p>
+    <p>The current reader accepts compressed image cels only. Raw and linked cels are rejected because linked editing relationships and the raw-cel variant are outside this first audited subset. Palette chunks in RGBA files are validated as metadata; palette identity is not part of the flattened PNG result.</p>
+
+    <h2>PNG sequence output</h2>
+    <p>PNG sequence output creates one deterministic PNG for each timeline frame. Visible layers are composited from bottom to top with normal source-over alpha, layer opacity, cel offsets, and clipping to the project canvas. Hidden layers and missing cels do not contribute. Names use a safe stem and a zero-padded frame number such as <code>walk-frame-0001.png</code>.</p>
+    <p class="callout warning"><strong>PNG output is flattened.</strong> The frame image preserves rendered RGBA pixels, but it does not contain editable layer boundaries, layer names, frame duration, tags, linked-cel relationships, or other Aseprite editor metadata. Keep the original project when those properties matter.</p>
+
+    <h2>Spritesheet PNG plus JSON output</h2>
+    <p>The spritesheet exporter places flattened full-canvas frames left to right and then top to bottom. You can choose the column count; the row count follows from the frame count. Unused cells in the last row stay transparent. The JSON sidecar records each frame rectangle and duration, the sheet image name and size, and supported frame-tag names, ranges, and playback directions. The layout is compatible with the project's supported Aseprite-style spritesheet JSON importer.</p>
+    <p>This path does not trim frames, rotate cells, pack irregular rectangles, or split a large result across multiple sheets. The exporter checks maximum dimensions and pixels before allocating the sheet. If a project would exceed the browser-local limit, reduce the canvas, frame count, or requested column layout in a copy of the source.</p>
+
+    <h2>A practical verification workflow</h2>
+    <ol class="steps"><li>Keep the original Aseprite project unchanged and work from a copy.</li><li>Choose <strong>Aseprite project</strong> in the converter and select exactly one <code>.ase</code> or <code>.aseprite</code> file.</li><li>Review the reported frame count, durations, layers, names, visibility, and preview before preparing output.</li><li>Choose Aseprite, PNG sequence, or Spritesheet PNG + JSON in the output selector. Give the files a short safe base name.</li><li>Use every generated download link. For a sheet, keep the PNG and JSON together.</li><li>Compare canvas size, frame order, transparency, offsets, timing metadata, and tags with the supported source properties before using the output in a production pipeline.</li></ol>
+    <p>If import fails, do not rename extensions or delete arbitrary bytes. Save a simplified 32-bit RGBA copy in the original editor, remove unsupported structural features you understand, and try that copy. For other symptoms, use the <a href="/troubleshooting/">troubleshooting guide</a> or compare input categories in the <a href="/guides/">guide hub</a>.</p>
   `,
 
   "/guides/png-sequence-to-aseprite/": `
@@ -316,12 +342,12 @@ SpriteProject layer Color: cel(frame 0), cel(frame 1)</div>
 
     <h2>What the tests intentionally reject</h2>
     <p>A credible compatibility boundary includes failures. The automated suite does not silently accept a file merely because its extension looks familiar. Representative rejection checks include:</p>
-    <ul><li>PNG sequence frames with mismatched decoded dimensions.</li><li>A grid whose cell products do not exactly fit its spritesheet.</li><li>Atlas rectangles outside the source image, incomplete trim data, rotated frames, and invalid durations.</li><li>Malformed JSON, invalid PNG signatures, unsafe ZIP paths, missing archive entries, and resource limits.</li><li>External Pixil image URLs, unsupported model versions, ambiguous layer identity, and missing cels.</li><li>Project groups, tilemaps, effects, masks, vector or text objects, unsupported color modes, and non-normal blend behavior outside the documented subset.</li><li>Flattened previews offered in place of actual layer payloads.</li></ul>
+    <ul><li>PNG sequence frames with mismatched decoded dimensions.</li><li>A grid whose cell products do not exactly fit its spritesheet.</li><li>Atlas rectangles outside the source image, incomplete trim data, unsupported rotation values or conventions, and invalid durations.</li><li>Malformed JSON, invalid PNG signatures, unsafe ZIP paths, missing archive entries, and resource limits.</li><li>External Pixil image URLs, unsupported model versions, ambiguous layer identity, and missing cels.</li><li>Project groups, tilemaps, effects, masks, vector or text objects, unsupported color modes, and non-normal blend behavior outside the documented subset.</li><li>Flattened previews offered in place of actual layer payloads.</li></ul>
     <p>Failing closed protects the meaning of the output. It is better to explain that a structure is unsupported than to return a file labeled editable after silently discarding data.</p>
 
     <h2>Inspect and reproduce the evidence</h2>
-    <p>The public samples are copied byte-for-byte from the repository's deterministic fixtures. Their generator can reproduce them locally, and automated tests assert that the published copies have not drifted from the inputs used by the importers. Start with the <a href="https://github.com/khs2325/sprite-to-aseprite/blob/main/tests/fixtures/README.md">fixture inventory and provenance notes</a>, inspect the <a href="https://github.com/khs2325/sprite-to-aseprite/blob/main/tests/fixtures/generate.mjs">deterministic generator</a>, and follow the <a href="https://github.com/khs2325/sprite-to-aseprite/blob/main/src/core/conversion.integration.test.ts">end-to-end conversion assertions</a>. The <a href="https://github.com/khs2325/sprite-to-aseprite/blob/main/src/core/exporters/aseprite/aseprite.test.ts">Aseprite writer tests</a> cover binary structure and validation.</p>
-    <p>Maintainer: <a href="https://github.com/khs2325">khs2325</a>. Corrections and reproducible compatibility reports belong in the <a href="https://github.com/khs2325/sprite-to-aseprite/issues">public issue tracker</a>; use newly created synthetic artwork rather than private source files.</p>
+    <p>The public samples are copied byte-for-byte from the repository's deterministic fixtures. Their generator can reproduce them locally, and automated tests assert that the published copies have not drifted from the inputs used by the importers. Start with the <a href="https://github.com/khs2325/convert-of-everything/blob/main/tests/fixtures/README.md">fixture inventory and provenance notes</a>, inspect the <a href="https://github.com/khs2325/convert-of-everything/blob/main/tests/fixtures/generate.mjs">deterministic generator</a>, and follow the <a href="https://github.com/khs2325/convert-of-everything/blob/main/src/core/conversion.integration.test.ts">end-to-end conversion assertions</a>. The <a href="https://github.com/khs2325/convert-of-everything/blob/main/src/core/exporters/aseprite/aseprite.test.ts">Aseprite writer tests</a> cover binary structure and validation.</p>
+    <p>Maintainer: <a href="https://github.com/khs2325">khs2325</a>. Corrections and reproducible compatibility reports belong in the <a href="https://github.com/khs2325/convert-of-everything/issues">public issue tracker</a>; use newly created synthetic artwork rather than private source files.</p>
   `,
 
   "/articles/": `
@@ -396,18 +422,18 @@ Color layer     Color cel 0     Color cel 1     Color cel 2</div>
     <p>Browser-local conversion means source artwork is read, parsed, decoded, transformed, previewed, and exported by code running in the browser tab. It does not mean the page makes no network requests at all: Cloudflare still serves the public HTML, CSS, JavaScript, and other static assets needed to load the application.</p>
 
     <h2>The conversion pipeline</h2>
-    <ol class="steps"><li>The visitor selects files through a browser file input or drag-and-drop. JavaScript receives <code>File</code> objects; selection alone does not upload them.</li><li>The chosen importer reads bytes or text with <code>File</code>, <code>Blob</code>, and typed-array APIs. Format signatures and resource limits are checked before expensive work.</li><li>PNG-backed formats use local image decoding and canvas when needed. Project-owned GIF and APNG logic parses animation structures before producing RGBA snapshots.</li><li>The importer creates a source-independent <code>SpriteProject</code> containing frames, supported layers, and cels.</li><li>Validation checks frame references, dimensions, durations, layer properties, RGBA byte lengths, and structures the exporter relies on.</li><li>The preview reads the same model. Duration and layer-name edits update local state.</li><li>The Aseprite writer creates the binary bytes in memory. A <code>Blob</code> URL offers those bytes as a browser download.</li></ol>
+    <ol class="steps"><li>The visitor selects files through a browser file input or drag-and-drop. JavaScript receives <code>File</code> objects; selection alone does not upload them.</li><li>The chosen importer reads bytes or text with <code>File</code>, <code>Blob</code>, and typed-array APIs. Format signatures and resource limits are checked before expensive work.</li><li>PNG-backed formats use local image decoding and canvas when needed. Project-owned GIF and APNG logic parses animation structures before producing RGBA snapshots.</li><li>The importer creates a source-independent <code>SpriteProject</code> containing frames, supported layers, and cels.</li><li>Validation checks frame references, dimensions, durations, layer properties, RGBA byte lengths, and structures the exporter relies on.</li><li>The preview reads the same model. Duration and layer-name edits update local state.</li><li>The selected exporter creates the requested output bytes in memory. <code>Blob</code> URLs offer the resulting file or files as browser downloads.</li></ol>
 
     <div class="mini-diagram">selected local File(s)
         ↓ local parser / decoder
 validated SpriteProject
         ↓ preview and optional edits
-Aseprite binary bytes
+selected output bytes
         ↓ Blob URL
 browser download</div>
 
     <h2>What the network is used for</h2>
-    <p>Opening the production site requests static resources from Cloudflare Pages. The host may receive ordinary web request metadata such as IP address, user agent, referrer, requested path, and timing according to its infrastructure and configuration. Those requests are separate from conversion and should not contain selected artwork, embedded project pixels, source metadata, or the generated <code>.aseprite</code> file.</p>
+    <p>Opening the production site requests static resources from Cloudflare Pages. The host may receive ordinary web request metadata such as IP address, user agent, referrer, requested path, and timing according to its infrastructure and configuration. Those requests are separate from conversion and should not contain selected artwork, embedded project pixels, source metadata, or the generated output files.</p>
     <p>The project has no conversion backend, upload endpoint, database, cloud artwork store, or remote image-processing fallback. If a browser lacks a required local API or reaches a memory limit, the importer reports a failure; it does not send the file elsewhere.</p>
 
     <h2>Format-specific local work</h2>
@@ -451,7 +477,7 @@ browser download</div>
     <p><strong>Practical fix:</strong> crop extra borders, enter the correct divisors, or use matching atlas JSON for packed rectangles. See <a href="/guides/spritesheet-to-aseprite/">grid and atlas examples</a>.</p>
 
     <h2>Spritesheet metadata is malformed</h2>
-    <p><strong>Likely cause:</strong> a frame rectangle is invalid or outside the PNG, durations are not positive, trimming metadata is incomplete, rotation is unsupported, or the JSON uses another schema.</p>
+    <p><strong>Likely cause:</strong> a frame rectangle is invalid or outside the PNG, durations are not positive, trimming metadata is incomplete, the rotation value or convention is unsupported, or the JSON uses another schema.</p>
     <p><strong>Validation:</strong> the importer accepts only supported root-level frame layouts and validates every rectangle before building a project.</p>
     <p><strong>Practical fix:</strong> pair the JSON with the image from the same export. Re-export rather than editing coordinates blindly. If a clean frame sequence is available, use it as a fallback.</p>
 
@@ -485,35 +511,35 @@ browser download</div>
   `,
 
   "/about/": `
-    <p>Sprite to Aseprite Converter is an open-source browser utility for rebuilding editable Aseprite timelines from supported sprite sources. It exists to make small format bridges inspectable: input files become one documented internal model, then one Aseprite writer consumes that model.</p>
+    <p>Convert of Everything is an open-source browser utility for moving supported sprite projects through one documented internal model. It rebuilds editable Aseprite timelines and can export normalized projects as Aseprite, flattened PNG frames, or a spritesheet with JSON metadata.</p>
 
     <h2>Why the project is conservative</h2>
     <p>Creative-file formats often contain far more than visible pixels. Groups, masks, effects, color profiles, tilemaps, text, vector data, animation controls, and application metadata may not have a faithful place in the current model. The importers reject ambiguous or unsupported structures instead of silently producing an output that appears more complete than it is.</p>
     <p>This is why support varies by format. PNG sequence and spritesheet workflows rebuild flat timelines. GIF and APNG also rebuild rendered frames with supported timing and compositing. Structured project formats preserve layers only when the source contains supported raster layer data and its tested subset maps cleanly.</p>
 
     <h2>Engineering approach</h2>
-    <ul><li>File processing remains in the browser; there is no artwork upload or conversion backend.</li><li>Every importer produces the canonical <code>SpriteProject</code>.</li><li>The exporter consumes only that model and writes a 32-bit RGBA Aseprite file.</li><li>Binary writer changes and parser behavior are covered by synthetic, reproducible tests.</li><li>Malformed input is rejected with content-safe diagnostics rather than partially accepted.</li><li>Compatibility claims are tied to code, fixtures, and format notes in the repository.</li></ul>
+    <ul><li>File processing remains in the browser; there is no artwork upload or conversion backend.</li><li>Every importer produces the canonical <code>SpriteProject</code>.</li><li>Each exporter consumes only that model and writes one supported output: a 32-bit RGBA Aseprite project, flattened PNG sequence, or spritesheet PNG + JSON.</li><li>Binary writer changes and parser behavior are covered by synthetic, reproducible tests.</li><li>Malformed input is rejected with content-safe diagnostics rather than partially accepted.</li><li>Compatibility claims are tied to code, fixtures, and format notes in the repository.</li></ul>
 
     <h2>Original format research</h2>
     <p>The project includes focused work on PNG sequences, grids, atlas metadata, Piskel, Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, and PSD. The Pixilart 2.7 path is a representative example: a fixture-defined schema was replaced after a genuine local save revealed the actual container and per-frame PNG layer structure. Only synthetic pixels were committed, while the verified field relationships became tests and documentation.</p>
 
     <h2>Maintenance and source</h2>
-    <p>The public repository is maintained under the GitHub account <a href="https://github.com/khs2325">khs2325</a>. Source, tests, task history, format notes, and current issues are available at <a href="https://github.com/khs2325/sprite-to-aseprite">github.com/khs2325/sprite-to-aseprite</a>. The repository does not present itself as a company, Aseprite partnership, or endorsement.</p>
+    <p>The public repository is maintained under the GitHub account <a href="https://github.com/khs2325">khs2325</a>. Source, tests, task history, format notes, and current issues are available at <a href="https://github.com/khs2325/convert-of-everything">github.com/khs2325/convert-of-everything</a>. The repository does not present itself as a company, Aseprite partnership, or endorsement.</p>
     <p>Compatibility claims are reviewed against deterministic synthetic fixtures, importer unit tests, end-to-end conversion tests, and Aseprite writer tests. The public <a href="/compatibility-lab/">compatibility lab</a> exposes representative inputs and observed results. This page and the public evidence were last reviewed August 24, 2026.</p>
     <p>Development and compatibility research are ongoing. A listed subset describes what the current implementation has evidence to support; it does not promise every file from that application will convert.</p>
 
     <h2 id="contact">Questions and compatibility reports</h2>
-    <p>Use the <a href="https://github.com/khs2325/sprite-to-aseprite/issues">public repository issue tracker</a> for reproducible bugs or documentation corrections. Do not post private artwork. A new tiny synthetic file that demonstrates the same structure is safer and usually easier to diagnose.</p>
+    <p>Use the <a href="https://github.com/khs2325/convert-of-everything/issues">public repository issue tracker</a> for reproducible bugs or documentation corrections. Do not post private artwork. A new tiny synthetic file that demonstrates the same structure is safer and usually easier to diagnose.</p>
     <p>Before reporting, read <a href="/troubleshooting/">Troubleshooting</a> and the matching <a href="/guides/">format guide</a>. Useful reports identify the import mode, browser, operating system, Aseprite version, exact safe error message, and expected frame or layer behavior.</p>
   `,
 
   "/privacy/": `
     <p class="review-line"><strong>Effective and last updated:</strong> August 24, 2026 · <strong>Maintainer:</strong> <a href="https://github.com/khs2325">khs2325</a></p>
-    <p>This policy explains the privacy boundary of the production site at <code>sprite-to-aseprite.pages.dev</code>. The core conversion design keeps selected artwork and generated Aseprite bytes in the browser. It does not make unrelated hosting requests or voluntary external sharing disappear.</p>
+    <p>This policy explains the privacy boundary of the production site at <code>sprite-to-aseprite.pages.dev</code>. The core conversion design keeps selected artwork and generated output bytes in the browser. It does not make unrelated hosting requests or voluntary external sharing disappear.</p>
 
     <h2>Artwork processing</h2>
-    <p>Files you select or drop are exposed to the page through browser APIs such as <code>File</code>, <code>Blob</code>, typed arrays, image decoding, canvas, and object URLs. Parsing, validation, preview generation, and Aseprite binary generation run in the tab. The project has no endpoint that receives source artwork for conversion and no remote image-processing fallback.</p>
-    <p>The generated <code>.aseprite</code> bytes are offered through a local browser download. The application does not upload the generated file after export.</p>
+    <p>Files you select or drop are exposed to the page through browser APIs such as <code>File</code>, <code>Blob</code>, typed arrays, image decoding, canvas, and object URLs. Parsing, validation, preview generation, and selected-output encoding run in the tab. The project has no endpoint that receives source artwork for conversion and no remote image-processing fallback.</p>
+    <p>The generated output files are offered through local browser downloads. The application does not upload them after export.</p>
 
     <h2>Static hosting requests</h2>
     <p>Cloudflare Pages serves the site's HTML, JavaScript, CSS, and other public assets. Loading or navigating the site therefore creates ordinary web requests. The hosting provider may process standard request information—such as IP address, user agent, referrer, requested path, and timing—according to its service and configuration. Selected artwork, embedded project pixels, and generated output should not be part of those static-resource requests.</p>
@@ -530,12 +556,12 @@ browser download</div>
     <p>The current repository does not add an analytics service, remote error-reporting script, conversion telemetry, or direct payment processing. External hosting and support providers may operate their own systems when their pages are requested. No secret payment information should be entered into this static converter page.</p>
 
     <h2>Changes and questions</h2>
-    <p>Material changes to hosting, analytics, advertising, or artwork handling should be reflected here before deployment. For a technical explanation of the current boundary, read <a href="/articles/browser-local-conversion/">How browser-local conversion works</a>. Questions or corrections can be raised through the <a href="https://github.com/khs2325/sprite-to-aseprite/issues">public issue tracker</a> without attaching private artwork.</p>
+    <p>Material changes to hosting, analytics, advertising, or artwork handling should be reflected here before deployment. For a technical explanation of the current boundary, read <a href="/articles/browser-local-conversion/">How browser-local conversion works</a>. Questions or corrections can be raised through the <a href="https://github.com/khs2325/convert-of-everything/issues">public issue tracker</a> without attaching private artwork.</p>
   `,
 
   "/terms/": `
     <p class="review-line"><strong>Effective and last updated:</strong> August 24, 2026 · <strong>Maintainer:</strong> <a href="https://github.com/khs2325">khs2325</a></p>
-    <p>These terms describe practical conditions for using Sprite to Aseprite Converter. They do not create a guarantee that every file will convert or that every source-application feature can be recovered.</p>
+    <p>These terms describe practical conditions for using Convert of Everything. The name is a product identity, not a guarantee that every file or conversion direction is supported. Only the documented, tested sprite-format subsets are available.</p>
 
     <h2>Permitted use</h2>
     <p>Use the converter only with files you have the right to process. You remain responsible for the source artwork, the generated output, and checking whether your use of either complies with applicable rights and obligations.</p>
@@ -557,6 +583,6 @@ browser download</div>
     <p>The project is an independent open-source utility. It does not claim an endorsement, partnership, or official affiliation with Aseprite or the applications whose supported file subsets it reads.</p>
 
     <h2>Project information</h2>
-    <p>Implementation details and current limitations are available in the <a href="https://github.com/khs2325/sprite-to-aseprite">public repository</a>, the <a href="/guides/">conversion guides</a>, and <a href="/troubleshooting/">troubleshooting</a>. Privacy-specific details are in the <a href="/privacy/">Privacy Policy</a>.</p>
+    <p>Implementation details and current limitations are available in the <a href="https://github.com/khs2325/convert-of-everything">public repository</a>, the <a href="/guides/">conversion guides</a>, and <a href="/troubleshooting/">troubleshooting</a>. Privacy-specific details are in the <a href="/privacy/">Privacy Policy</a>.</p>
   `,
 };

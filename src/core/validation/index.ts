@@ -356,49 +356,20 @@ export function validateSpriteProject(
         );
       }
 
-      if (!Number.isInteger(cel.x) || (cel.x as number) < 0) {
+      if (!Number.isSafeInteger(cel.x)) {
         addError(
           errors,
           "invalid_cel_x",
           `${celPath}.x`,
-          "Cel x position must be a non-negative integer.",
+          "Cel x position must be a safe integer.",
         );
       }
-      if (!Number.isInteger(cel.y) || (cel.y as number) < 0) {
+      if (!Number.isSafeInteger(cel.y)) {
         addError(
           errors,
           "invalid_cel_y",
           `${celPath}.y`,
-          "Cel y position must be a non-negative integer.",
-        );
-      }
-
-      if (
-        widthIsValid &&
-        imageDataIsValid &&
-        Number.isInteger(cel.x) &&
-        (cel.x as number) >= 0 &&
-        (cel.x as number) + imageWidth! > (project.width as number)
-      ) {
-        addError(
-          errors,
-          "cel_out_of_bounds",
-          `${celPath}.x`,
-          "Cel image extends beyond the project width.",
-        );
-      }
-      if (
-        heightIsValid &&
-        imageDataIsValid &&
-        Number.isInteger(cel.y) &&
-        (cel.y as number) >= 0 &&
-        (cel.y as number) + imageHeight! > (project.height as number)
-      ) {
-        addError(
-          errors,
-          "cel_out_of_bounds",
-          `${celPath}.y`,
-          "Cel image extends beyond the project height.",
+          "Cel y position must be a safe integer.",
         );
       }
     });

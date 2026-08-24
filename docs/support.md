@@ -1,6 +1,6 @@
 # Support
 
-Sprite to Aseprite Converter is free to use. Conversion stays browser-local:
+Convert of Everything is free to use. Conversion stays browser-local:
 source artwork and metadata are read in the browser and are not uploaded for
 conversion.
 

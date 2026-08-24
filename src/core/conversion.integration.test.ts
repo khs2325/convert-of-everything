@@ -980,24 +980,24 @@ describe("importer to Aseprite export integration", () => {
       height: 2,
       layers: [
         {
-          cels: [{ frameIndex: 0, x: 1, y: -1 }],
-          name: "Top hidden half",
-          opacity: 128,
-          visible: false,
-        },
-        {
           cels: [{ frameIndex: 0, x: 0, y: 0 }],
           name: "Base visible",
           opacity: 255,
           visible: true,
         },
+        {
+          cels: [{ frameIndex: 0, x: 1, y: -1 }],
+          name: "Top hidden half",
+          opacity: 128,
+          visible: false,
+        },
       ],
       width: 2,
     });
-    expect(pixel(project.layers[0].cels[0].imageData, 1, 0)).toEqual([
+    expect(pixel(project.layers[1].cels[0].imageData, 1, 0)).toEqual([
       255, 209, 102, 255,
     ]);
-    expect(pixel(project.layers[1].cels[0].imageData, 0, 0)).toEqual([
+    expect(pixel(project.layers[0].cels[0].imageData, 0, 0)).toEqual([
       17, 138, 178, 255,
     ]);
 
@@ -1024,8 +1024,8 @@ describe("importer to Aseprite export integration", () => {
         };
       }),
     ).toEqual([
-      { name: "Top hidden half", opacity: 128, visible: false },
       { name: "Base visible", opacity: 255, visible: true },
+      { name: "Top hidden half", opacity: 128, visible: false },
     ]);
 
     const celChunks = frames[0].chunks.filter(({ type }) => type === 0x2005);
@@ -1050,21 +1050,21 @@ describe("importer to Aseprite export integration", () => {
         height: 2,
         layerIndex: 0,
         pixels: [
-          0, 0, 0, 0, 255, 209, 102, 255, 239, 71, 111, 255, 17, 138, 178, 255,
-        ],
-        width: 2,
-        x: 1,
-        y: -1,
-      },
-      {
-        height: 2,
-        layerIndex: 1,
-        pixels: [
           17, 138, 178, 255, 0, 0, 0, 0, 0, 0, 0, 0, 255, 209, 102, 255,
         ],
         width: 2,
         x: 0,
         y: 0,
+      },
+      {
+        height: 2,
+        layerIndex: 1,
+        pixels: [
+          0, 0, 0, 0, 255, 209, 102, 255, 239, 71, 111, 255, 17, 138, 178, 255,
+        ],
+        width: 2,
+        x: 1,
+        y: -1,
       },
     ]);
   });
@@ -1089,24 +1089,24 @@ describe("importer to Aseprite export integration", () => {
       height: 3,
       layers: [
         {
-          cels: [{ frameIndex: 0, x: 1, y: -1 }],
-          name: "Top hidden half",
-          opacity: 128,
-          visible: false,
-        },
-        {
           cels: [{ frameIndex: 0, x: 0, y: 1 }],
           name: "Base visible",
           opacity: 255,
           visible: true,
         },
+        {
+          cels: [{ frameIndex: 0, x: 1, y: -1 }],
+          name: "Top hidden half",
+          opacity: 128,
+          visible: false,
+        },
       ],
       width: 4,
     });
-    expect(pixel(project.layers[0].cels[0].imageData, 1, 0)).toEqual([
+    expect(pixel(project.layers[1].cels[0].imageData, 1, 0)).toEqual([
       255, 209, 102, 255,
     ]);
-    expect(pixel(project.layers[1].cels[0].imageData, 0, 0)).toEqual([
+    expect(pixel(project.layers[0].cels[0].imageData, 0, 0)).toEqual([
       239, 71, 111, 255,
     ]);
 
@@ -1114,8 +1114,8 @@ describe("importer to Aseprite export integration", () => {
       durationMs: 100,
       height: 3,
       layers: [
-        { name: "Top hidden half", opacity: 128, visible: false },
         { name: "Base visible", opacity: 255, visible: true },
+        { name: "Top hidden half", opacity: 128, visible: false },
       ],
       width: 4,
       cels: [
@@ -1124,16 +1124,16 @@ describe("importer to Aseprite export integration", () => {
           layerIndex: 0,
           pixels: Array.from(project.layers[0].cels[0].imageData.data),
           width: 2,
-          x: 1,
-          y: -1,
+          x: 0,
+          y: 1,
         },
         {
           height: 2,
           layerIndex: 1,
           pixels: Array.from(project.layers[1].cels[0].imageData.data),
           width: 2,
-          x: 0,
-          y: 1,
+          x: 1,
+          y: -1,
         },
       ],
     });
@@ -1154,23 +1154,23 @@ describe("importer to Aseprite export integration", () => {
       layers: [
         {
           cels: [{ frameIndex: 0, x: 0, y: 0 }],
-          name: "Top hidden half",
-          opacity: 128,
-          visible: false,
-        },
-        {
-          cels: [{ frameIndex: 0, x: 0, y: 0 }],
           name: "Base visible",
           opacity: 255,
           visible: true,
         },
+        {
+          cels: [{ frameIndex: 0, x: 0, y: 0 }],
+          name: "Top hidden half",
+          opacity: 128,
+          visible: false,
+        },
       ],
       width: 4,
     });
-    expect(pixel(project.layers[0].cels[0].imageData, 2, 0)).toEqual([
+    expect(pixel(project.layers[1].cels[0].imageData, 2, 0)).toEqual([
       255, 209, 102, 255,
     ]);
-    expect(pixel(project.layers[1].cels[0].imageData, 0, 1)).toEqual([
+    expect(pixel(project.layers[0].cels[0].imageData, 0, 1)).toEqual([
       17, 138, 178, 255,
     ]);
 
@@ -1178,8 +1178,8 @@ describe("importer to Aseprite export integration", () => {
       durationMs: 100,
       height: 3,
       layers: [
-        { name: "Top hidden half", opacity: 128, visible: false },
         { name: "Base visible", opacity: 255, visible: true },
+        { name: "Top hidden half", opacity: 128, visible: false },
       ],
       width: 4,
       cels: [

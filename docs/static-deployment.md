@@ -1,6 +1,6 @@
 # Static deployment guide
 
-Sprite to Aseprite Converter is a Vite app that can be deployed as static
+Convert of Everything is a Vite app that can be deployed as static
 HTML, JavaScript, and CSS. The deployed site does not need an application
 server, database, serverless function, or file-upload endpoint. Conversion and
 `.aseprite` generation run in the visitor's browser.

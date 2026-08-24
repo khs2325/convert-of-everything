@@ -301,7 +301,7 @@ const PRODUCT_COMPLETION_TASKS = [
       "Add an npm run dev script if it is missing.",
       "Ensure index.html has an app root element.",
       "Mount the real browser UI from src/index.ts.",
-      "Show the title Sprite to Aseprite Converter.",
+      "Show the title Convert of Everything.",
       "Explain that files are processed browser-locally.",
       "Include a mode selector for the available import modes.",
       "Include a file input and a drag-and-drop area.",

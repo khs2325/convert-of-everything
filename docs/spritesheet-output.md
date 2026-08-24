@@ -1,9 +1,10 @@
-# Spritesheet Output Planning
+# Spritesheet Output
 
-Status: planning only. Do not implement spritesheet export, trimming,
-rotation, packing, or UI controls from this note alone.
+Status: implemented as one deterministic row-major flattened PNG plus an
+Aseprite-compatible JSON sidecar containing rectangles, durations, and
+supported frame tags. Trimming, rotation, and atlas packing remain unsupported.
 
-Spritesheet output is a future browser-local exporter that consumes
+Spritesheet output is a browser-local exporter that consumes
 `SpriteProject` and creates local downloads. It is intended for imported
 Aseprite timelines and any other supported input that has already been
 normalized into the shared model. It must not upload artwork or inspect raw
@@ -11,13 +12,13 @@ source parser state.
 
 ## First Exporter Subset
 
-The first subset should export two files:
+The first subset exports two files:
 
 - `name.png`: one flattened RGBA spritesheet.
 - `name.json`: one metadata sidecar describing frame rectangles, durations, and
   layout.
 
-The exporter should be deliberately small:
+The exporter is deliberately small:
 
 - Fixed-size grid cells only.
 - One sheet image only.
@@ -35,7 +36,7 @@ Each output frame is composited into a transparent `project.width` by
 drawn in project layer order using their opacity and cel offsets. Hidden layers
 are ignored. Pixels outside the project canvas are clipped.
 
-The first subset should reject invalid projects instead of guessing:
+The first subset rejects invalid projects instead of guessing:
 
 - Frame indices must be deterministic and unique.
 - Frame durations must be finite non-negative millisecond values.
@@ -67,36 +68,40 @@ multi-sheet output after those behaviors are specified and tested.
 ## Transparency
 
 The PNG stores straight RGBA pixels with alpha preserved from the flattened
-frame compositor. The exporter should not add a matte color, checkerboard
+frame compositor. The exporter does not add a matte color, checkerboard
 background, or opaque fill. Fully transparent padding from unused grid cells
 must remain transparent.
 
 ## JSON Metadata
 
-The sidecar JSON should use a small app-owned schema rather than pretending to
-be TexturePacker or Aseprite JSON. A first version can look like:
+The sidecar uses the supported Aseprite-compatible JSON array layout so the
+project's existing spritesheet JSON importer can read its rectangles, timing,
+and frame tags again:
 
 ```json
 {
-  "schema": "sprite-to-aseprite.spritesheet.v1",
-  "image": "name.png",
-  "size": { "w": 512, "h": 256 },
-  "cell": { "w": 64, "h": 64 },
-  "layout": { "columns": 8, "rows": 4, "order": "row-major" },
   "frames": [
     {
-      "index": 0,
-      "durationMs": 100,
+      "filename": "name-0001.png",
       "frame": { "x": 0, "y": 0, "w": 64, "h": 64 },
-      "sourceSize": { "w": 64, "h": 64 },
+      "rotated": false,
       "trimmed": false,
-      "rotated": false
+      "duration": 100
     }
-  ]
+  ],
+  "meta": {
+    "app": "Convert of Everything / Aseprite-compatible",
+    "version": "1",
+    "image": "name-sheet.png",
+    "format": "RGBA8888",
+    "size": { "w": 512, "h": 256 },
+    "scale": "1",
+    "frameTags": []
+  }
 }
 ```
 
-`durationMs` is copied from each `SpriteFrame` so animation timing can be
+`duration` is copied from each `SpriteFrame.durationMs` so animation timing can be
 reconstructed by consumers that read the sidecar. Frame rectangle width and
 height match the fixed cell size in the first subset.
 
@@ -107,10 +112,9 @@ not preserve editable layer structure in the PNG or JSON. Layers can only be
 preserved by source formats and output formats that both contain layer data and
 have explicit model and exporter support.
 
-Frame tags are not part of the first spritesheet subset. If a future
-`SpriteProject` tag model is available, a later schema version may add tag
-ranges, names, directions, and color metadata. Until then, tags from imported
-Aseprite files should be reported as not preserved by this exporter.
+Supported `SpriteProject.frameTags` are written to the JSON sidecar as name,
+inclusive frame range, and playback direction. Tag colors and other Aseprite
+editor metadata are not represented by the current model or exporter.
 
 Source-specific metadata is not round-tripped. Aseprite chunks, writer version,
 UUIDs, slices, palettes, color profiles, tilemaps, linked-cel relationships,

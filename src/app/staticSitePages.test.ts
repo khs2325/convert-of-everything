@@ -152,7 +152,7 @@ describe("static multi-page site", () => {
     const main = html.match(/<main\b[^>]*>[\s\S]*?<\/main>/iu)?.[0] ?? "";
     const words = stripHtml(main).match(/[A-Za-z0-9][A-Za-z0-9'’-]*/gu) ?? [];
     expect(html).toContain('id="app"');
-    expect(html).toContain("Sprite to Aseprite Converter");
+    expect(html).toContain("Convert of Everything");
     expect(html).toMatch(/<script[^>]+src="\/assets\//u);
     expect(html).toContain("Artwork is parsed and converted in your browser.");
     expect(html).toContain("A practical guide to rebuilding sprite projects");

@@ -2,3 +2,7 @@
 tests/fixtures/**/*.json text eol=lf
 tests/fixtures/**/*.piskel text eol=lf
 tests/fixtures/**/*.pixil text eol=lf
+public/ads.txt text eol=lf
+public/samples/**/*.json text eol=lf
+public/samples/**/*.piskel text eol=lf
+public/samples/**/*.pixil text eol=lf

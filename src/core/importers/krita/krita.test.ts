@@ -285,27 +285,27 @@ describe("Krita importer", () => {
       frames: [{ index: 0, durationMs: 100 }],
       layers: [
         {
-          id: "krita-layer-0",
-          name: "Top hidden half",
-          opacity: 128,
-          visible: false,
-          cels: [{ frameIndex: 0, x: 1, y: -1 }],
-        },
-        {
           id: "krita-layer-1",
           name: "Base visible",
           opacity: 255,
           visible: true,
           cels: [{ frameIndex: 0, x: 0, y: 0 }],
         },
+        {
+          id: "krita-layer-0",
+          name: "Top hidden half",
+          opacity: 128,
+          visible: false,
+          cels: [{ frameIndex: 0, x: 1, y: -1 }],
+        },
       ],
     });
-    expect(pixel(project.layers[0].cels[0].imageData, 0, 0)).toEqual(transparent);
-    expect(pixel(project.layers[0].cels[0].imageData, 1, 0)).toEqual(yellow);
-    expect(pixel(project.layers[0].cels[0].imageData, 0, 1)).toEqual(coral);
-    expect(pixel(project.layers[0].cels[0].imageData, 1, 1)).toEqual(cyan);
-    expect(pixel(project.layers[1].cels[0].imageData, 0, 0)).toEqual(cyan);
-    expect(pixel(project.layers[1].cels[0].imageData, 1, 1)).toEqual(yellow);
+    expect(pixel(project.layers[1].cels[0].imageData, 0, 0)).toEqual(transparent);
+    expect(pixel(project.layers[1].cels[0].imageData, 1, 0)).toEqual(yellow);
+    expect(pixel(project.layers[1].cels[0].imageData, 0, 1)).toEqual(coral);
+    expect(pixel(project.layers[1].cels[0].imageData, 1, 1)).toEqual(cyan);
+    expect(pixel(project.layers[0].cels[0].imageData, 0, 0)).toEqual(cyan);
+    expect(pixel(project.layers[0].cels[0].imageData, 1, 1)).toEqual(yellow);
   });
 
   it("uses deterministic defaults for optional paint-layer metadata", async () => {

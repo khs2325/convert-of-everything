@@ -1,9 +1,9 @@
-# Output Format Selector Plan
+# Output Format Selector
 
-Status: planning only. Do not add UI controls or exporters from this note alone.
+Status: Aseprite, PNG sequence, and spritesheet PNG + JSON implemented.
 
-The current product exports `.aseprite` files from a browser-local
-`SpriteProject`. A future output selector should keep that boundary: importers
+The current product exports three browser-local output paths from
+`SpriteProject`. The selector keeps that boundary: importers
 produce `SpriteProject`, exporters consume `SpriteProject`, and downloads are
 created as local `Blob` objects without uploading artwork.
 
@@ -19,8 +19,8 @@ Each option should have a short capability note:
 | Output | State | User-facing note |
 | --- | --- | --- |
 | Aseprite `.aseprite` | Enabled when a valid `SpriteProject` exists. | Editable Aseprite timeline. |
-| PNG sequence | Disabled until implemented. | Export one flattened PNG per frame. |
-| Spritesheet PNG | Disabled until implemented. | Export frames arranged on one flattened sheet. |
+| PNG sequence | Enabled when a valid `SpriteProject` exists and aggregate pixel limits pass. | Export one flattened PNG per frame. |
+| Spritesheet PNG + JSON | Enabled when a valid `SpriteProject` exists and sheet limits pass. | Export a flattened row-major sheet plus rectangles, durations, and supported tags. |
 | GIF | Disabled until implemented. | Export animated frames with GIF timing limits. |
 | APNG | Disabled until implemented. | Export animated PNG frames where browser support allows download. |
 | PSD `.psd` | Research-only and disabled. | Research target for layered raster interchange; no support promised. |
@@ -33,10 +33,9 @@ explicitly supports.
 
 ## Disabled States
 
-The selector may show planned formats before implementation, but the download
-button must stay disabled for any selected format without a registered exporter.
-Disabled options should explain the reason in product terms, such as
-`PNG sequence export is planned but not available yet`.
+The selector exposes implemented formats. Any future option must stay disabled
+until it has a registered exporter and should explain the reason in product
+terms.
 
 All outputs are disabled until conversion produces a valid `SpriteProject`.
 Format-specific exporters may also disable download when the project exceeds
@@ -49,8 +48,9 @@ and copy. It must not imply bidirectional PSD conversion.
 
 ## Architecture
 
-Introduce an output registry only when the second exporter is implemented. The
-registry should be data, not UI branching:
+The download UI dispatches to an exporter only after validating a shared
+`SpriteProject`. A future registry may replace the small current dispatch when
+more formats are implemented:
 
 ```ts
 type OutputFormat = {
@@ -68,21 +68,17 @@ clear, safe diagnostic for unsupported output conditions. UI code should only
 choose a format, call the registered exporter, create a local object URL, start
 the download, and revoke the URL.
 
-## Implementation Sequence
+## Implementation Status
 
-1. Add static selector copy with only Aseprite enabled, plus disabled planned
-   options and tests for disabled messaging.
-2. Refactor the existing Aseprite download path behind an output registry
-   without changing generated `.aseprite` bytes.
-3. Add PNG sequence export because it is the smallest flattened output and can
-   exercise multi-file download packaging decisions.
-4. Add spritesheet PNG export with explicit grid layout, max-canvas limits, and
-   tests for frame order.
-5. Add GIF export only after documenting palette, timing, frame-count, and
+1. Aseprite output remains the default editable-project option.
+2. PNG sequence output creates one deterministic flattened PNG per frame.
+3. Spritesheet output creates a deterministic row-major PNG and JSON sidecar
+   with explicit dimensions, pixel limits, frame order, durations, and tags.
+4. Add GIF export only after documenting palette, timing, frame-count, and
    transparency limits.
-6. Add APNG export only after documenting encoder scope, chunk validation,
+5. Add APNG export only after documenting encoder scope, chunk validation,
    timing, disposal/blend behavior, and browser download behavior.
-7. Keep PSD as research-only until a separate writer feasibility note proves a
+6. Keep PSD as research-only until a separate writer feasibility note proves a
    narrow browser-local subset and fixture strategy.
 
 Each implementation task should update product copy, architecture notes, core

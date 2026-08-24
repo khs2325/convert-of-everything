@@ -210,9 +210,9 @@ function isProhibitedAdRegion(element: ElementStub): boolean {
     element.getAttribute("role") === "alert" ||
     (element.tagName === "input" && element.type === "file") ||
     (element.tagName === "button" &&
-      ["Clear selected files", "Convert to .aseprite", "Download .aseprite"]
+      ["Clear selected files", "Start conversion", "Prepare downloads"]
         .includes(getText(element))) ||
-    labelValue === "Aseprite export"
+    labelValue === "Converted file export"
   );
 }
 
@@ -306,6 +306,7 @@ describe("AdSense readiness site content", () => {
 
   it("keeps supported-format labels aligned with implemented importers", () => {
     expect(SUPPORTED_FORMATS.map((format) => format.input)).toEqual([
+      "Aseprite project",
       "PNG sequence",
       "Spritesheet grid",
       "Spritesheet PNG + JSON",
@@ -363,7 +364,7 @@ describe("AdSense readiness site content", () => {
       ),
     ).toBe(true);
     expect(
-      prohibitedRegions.some((element) => getText(element) === "Convert to .aseprite"),
+      prohibitedRegions.some((element) => getText(element) === "Start conversion"),
     ).toBe(true);
     expect(
       prohibitedRegions.some((element) => hasClass(element, "download-area")),

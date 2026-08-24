@@ -1063,7 +1063,7 @@ export async function importOpenRasterBytes(
     colorMode: "rgba",
     frames: [{ index: 0, durationMs: DEFAULT_FRAME_DURATION_MS }],
     height: parsed.height,
-    layers,
+    layers: layers.reverse(),
     width: parsed.width,
   };
 }

@@ -1,6 +1,6 @@
 # Manual usage guide
 
-Sprite to Aseprite Converter rebuilds an editable Aseprite timeline from PNG
+Convert of Everything rebuilds an editable Aseprite timeline from PNG
 frames, spritesheets, a supported Piskel project, a supported OpenRaster
 project, a supported Pixelorama project, a supported Pixil/Pixilart project, a
 supported Krita project, or a supported PSD project or GIF/APNG animation.
@@ -107,7 +107,7 @@ simultaneously retain compressed input files, decoded source images, canvas or
 frame copies, the `SpriteProject` cel data, and the generated `.aseprite` blob.
 A tab that runs out of memory may slow down, fail conversion, reload, or crash.
 Layered formats multiply this cost by retained layer and cel data, so PSD and
-future Aseprite input can need much more memory than a flat file with the same
+Aseprite project input can need much more memory than a flat file with the same
 canvas size. Archive-based formats can also expand far beyond their compressed
 file size while they are parsed and decoded.
 

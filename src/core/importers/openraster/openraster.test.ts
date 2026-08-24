@@ -277,33 +277,33 @@ describe("OpenRaster importer", () => {
       frames: [{ index: 0, durationMs: 100 }],
       layers: [
         {
-          id: "openraster-layer-0",
-          name: "Top hidden half",
-          opacity: 128,
-          visible: false,
-          cels: [{ frameIndex: 0, x: 1, y: -1 }],
-        },
-        {
           id: "openraster-layer-1",
           name: "Base visible",
           opacity: 255,
           visible: true,
           cels: [{ frameIndex: 0, x: 0, y: 1 }],
         },
+        {
+          id: "openraster-layer-0",
+          name: "Top hidden half",
+          opacity: 128,
+          visible: false,
+          cels: [{ frameIndex: 0, x: 1, y: -1 }],
+        },
       ],
     });
     expect(deps.decodePng).toHaveBeenCalledTimes(2);
     expect(project.layers.map((layer) => layer.cels[0].imageData.width)).toEqual([2, 2]);
-    expect(pixel(project.layers[0].cels[0].imageData, 1, 0)).toEqual([
+    expect(pixel(project.layers[1].cels[0].imageData, 1, 0)).toEqual([
       255, 209, 102, 255,
     ]);
-    expect(pixel(project.layers[0].cels[0].imageData, 0, 1)).toEqual([
+    expect(pixel(project.layers[1].cels[0].imageData, 0, 1)).toEqual([
       239, 71, 111, 255,
     ]);
-    expect(pixel(project.layers[1].cels[0].imageData, 0, 0)).toEqual([
+    expect(pixel(project.layers[0].cels[0].imageData, 0, 0)).toEqual([
       239, 71, 111, 255,
     ]);
-    expect(pixel(project.layers[1].cels[0].imageData, 1, 1)).toEqual([
+    expect(pixel(project.layers[0].cels[0].imageData, 1, 1)).toEqual([
       255, 209, 102, 255,
     ]);
   });

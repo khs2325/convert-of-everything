@@ -90,6 +90,14 @@ function pixil(name: string): BrowserSourceFile {
   };
 }
 
+function aseprite(name: string): BrowserSourceFile {
+  return {
+    file: new File([new Uint8Array([0])], name, { type: "application/x-aseprite" }),
+    kind: "aseprite",
+    bytes: new ArrayBuffer(0),
+  };
+}
+
 function validPixilProjectJson(): string {
   return JSON.stringify({
     application: "pixil",
@@ -627,7 +635,7 @@ describe("mountConverterUi Pixil selection", () => {
     expect(results.hidden).toBe(true);
     expect(getText(root)).toContain("Runs in your browser");
     expect(getText(root)).toContain("No artwork uploads");
-    expect(getText(root)).toContain("Editable .aseprite output");
+    expect(getText(root)).toContain("Aseprite, PNG, and spritesheet output");
   });
 
   it("keeps mode guidance accurate without claiming lossless conversion", () => {
@@ -661,7 +669,7 @@ describe("mountConverterUi Pixil selection", () => {
       root,
       (element) =>
         element.tagName === "button" &&
-        element.textContent === "Convert to .aseprite",
+        element.textContent === "Start conversion",
     );
 
     modeSelect.value = "pixil";
@@ -751,13 +759,13 @@ describe("mountConverterUi Pixil selection", () => {
       root,
       (element) =>
         element.tagName === "button" &&
-        element.textContent === "Convert to .aseprite",
+        element.textContent === "Start conversion",
     );
     const downloadButton = findOne(
       root,
       (element) =>
         element.tagName === "button" &&
-        element.textContent === "Download .aseprite",
+        element.textContent === "Prepare downloads",
     );
 
     modeSelect.value = "pixil";
@@ -804,7 +812,7 @@ describe("mountConverterUi Pixil selection", () => {
       root,
       (element) =>
         element.tagName === "button" &&
-        element.textContent === "Convert to .aseprite",
+        element.textContent === "Start conversion",
     );
     const privateContents = '{"private pixels":"do not display"';
 
@@ -1039,6 +1047,7 @@ describe("spritesheet grid preview calculations", () => {
 describe("convertSourceFiles", () => {
   it("delegates every mode to the existing importer with the selected files", async () => {
     const importPngSequence = vi.fn(async () => project);
+    const importAseprite = vi.fn(async () => project);
     const importApng = vi.fn(async () => project);
     const importGif = vi.fn(async () => project);
     const importKrita = vi.fn(async () => project);
@@ -1050,6 +1059,7 @@ describe("convertSourceFiles", () => {
     const importSpritesheetGrid = vi.fn(async () => project);
     const importSpritesheetJson = vi.fn(async () => project);
     const importers = {
+      importAseprite,
       importApng,
       importGif,
       importKrita,
@@ -1073,6 +1083,10 @@ describe("convertSourceFiles", () => {
     const pixilProject = pixil("scene.pixil");
     const kritaProject = kra("scene.kra");
     const psdProject = psd("scene.psd");
+    const asepriteProject = aseprite("scene.aseprite");
+
+    await convertSourceFiles("aseprite", [asepriteProject], gridOptions, importers);
+    expect(importAseprite).toHaveBeenCalledWith(new Uint8Array());
 
     await expect(
       convertSourceFiles(
