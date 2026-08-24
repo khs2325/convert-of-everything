@@ -1217,6 +1217,10 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
     conversionError,
   );
 
+  const sourceActionColumn = document.createElement("div");
+  sourceActionColumn.className = "source-action-column";
+  sourceActionColumn.append(importPanel, convertPanel);
+
   const workspace = document.createElement("div");
   const previewContainer = document.createElement("div");
   const layerContainer = document.createElement("div");
@@ -1232,11 +1236,10 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
   exportContainer.className = "download-area";
   workspace.append(previewContainer, layerContainer);
   convertPanel.append(exportContainer);
-  workflowGrid.append(routeMapContainer, importPanel);
+  workflowGrid.append(routeMapContainer, sourceActionColumn);
   converterSection.append(
     converterHeader,
     workflowGrid,
-    convertPanel,
     workspace,
   );
   const footerNavigation = document.createElement("nav");

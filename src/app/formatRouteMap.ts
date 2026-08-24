@@ -184,10 +184,6 @@ export function mountFormatRouteMap(
   const globeGrid = document.createElement("div");
   const globeShade = document.createElement("div");
   const routeLine = document.createElement("div");
-  const hub = document.createElement("div");
-  const hubKicker = document.createElement("span");
-  const hubText = document.createElement("strong");
-  const dragHint = document.createElement("small");
   const nodeButtons = new Map<string, HTMLButtonElement>();
   const searchButtons = new Map<string, HTMLButtonElement>();
   const readout = document.createElement("div");
@@ -260,12 +256,7 @@ export function mountFormatRouteMap(
   globeShade.setAttribute("aria-hidden", "true");
   routeLine.className = "format-route-line";
   routeLine.setAttribute("aria-hidden", "true");
-  hub.className = "format-route-hub";
-  hubKicker.textContent = "FORMAT SURFACE";
-  hubText.textContent = "Choose source";
-  dragHint.textContent = "Drag to rotate";
-  hub.append(hubKicker, hubText, dragHint);
-  map.append(globe, globeShade, routeLine, hub);
+  map.append(globe, globeShade, routeLine);
 
   for (const node of FORMAT_ROUTE_NODES) {
     const button = document.createElement("button");
@@ -431,14 +422,11 @@ export function mountFormatRouteMap(
     fromValue.textContent = source?.label ?? "Choose a source";
     toValue.textContent = route?.target.label ?? "Choose an output";
     if (selection.sourceId === null) {
-      hubText.textContent = "Choose source";
       status.textContent = "Select the format you are starting with.";
     } else if (selection.targetId === null) {
-      hubText.textContent = "Choose output";
       status.textContent = "Now choose Aseprite, PNG frames, or Sprite sheet as the destination.";
     } else {
-      hubText.textContent = "Route ready";
-      status.textContent = `${route!.source.label} to ${route!.target.label} is selected. Add your source files below.`;
+      status.textContent = `${route!.source.label} to ${route!.target.label} is selected. Add files in the source panel.`;
     }
     renderSurface();
   };
