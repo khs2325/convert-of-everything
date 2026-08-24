@@ -5,6 +5,7 @@ import {
   FORMAT_ROUTE_NODES,
   getFormatSurfacePresentation,
   getFormatRoute,
+  offsetFormatGlobeRotation,
   projectFormatSurfacePoint,
   shouldStartFormatGlobeDrag,
   type FormatRouteSelection,
@@ -93,19 +94,32 @@ describe("format route selection", () => {
     expect(back.scale).toBeLessThan(front.scale);
   });
 
-  it("keeps the original front highlight depth while lifting a selected back format", () => {
+  it("lifts selected formats equally on the front and back surfaces", () => {
     const front = projectFormatSurfacePoint(1, 0, 0);
     const back = projectFormatSurfacePoint(1, 0, 180);
 
-    expect(getFormatSurfacePresentation(front, true, false)).toEqual(
-      getFormatSurfacePresentation(front, false, false),
-    );
+    expect(getFormatSurfacePresentation(front, true, false)).toEqual({
+      opacity: 1,
+      zIndex: 22,
+    });
     expect(getFormatSurfacePresentation(back, true, false)).toEqual({
       opacity: 1,
       zIndex: 22,
     });
     expect(getFormatSurfacePresentation(back, false, false).opacity).toBe(0.72);
     expect(getFormatSurfacePresentation(back, false, true).opacity).toBeCloseTo(0.1596);
+  });
+
+  it("allows rotation to continue past a full turn on both axes", () => {
+    expect(offsetFormatGlobeRotation(350, -355, 40, -20)).toEqual({
+      rotationXDegrees: 390,
+      rotationYDegrees: -375,
+    });
+    const fullTurns = projectFormatSurfacePoint(1, 720, -720);
+    const origin = projectFormatSurfacePoint(1, 0, 0);
+    expect(fullTurns.leftPercent).toBeCloseTo(origin.leftPercent);
+    expect(fullTurns.topPercent).toBeCloseTo(origin.topPercent);
+    expect(fullTurns.depth).toBeCloseTo(origin.depth);
   });
 
   it("keeps ordinary clicks below the globe drag threshold", () => {

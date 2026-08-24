@@ -29,6 +29,11 @@ export type FormatSurfacePresentation = {
   zIndex: number;
 };
 
+export type FormatGlobeRotation = {
+  rotationXDegrees: number;
+  rotationYDegrees: number;
+};
+
 type FormatRouteInteractiveControl =
   | HTMLButtonElement
   | HTMLInputElement
@@ -130,17 +135,28 @@ export function getFormatSurfacePresentation(
   isSelected: boolean,
   isMuted: boolean,
 ): FormatSurfacePresentation {
-  const isSelectedBack = point.isBack && isSelected;
   const surfaceOpacity = point.isBack
     ? isMuted ? 0.42 : 0.72
     : 0.78 + (point.depth + 1) * 0.11;
   return {
-    opacity: isSelectedBack ? 1 : isMuted ? surfaceOpacity * 0.38 : surfaceOpacity,
-    zIndex: isSelectedBack
+    opacity: isSelected ? 1 : isMuted ? surfaceOpacity * 0.38 : surfaceOpacity,
+    zIndex: isSelected
       ? 22
       : point.isBack
         ? 2 + Math.round((point.depth + 1) * 3)
         : 10 + Math.round(point.depth * 8),
+  };
+}
+
+export function offsetFormatGlobeRotation(
+  rotationXDegrees: number,
+  rotationYDegrees: number,
+  deltaXDegrees: number,
+  deltaYDegrees: number,
+): FormatGlobeRotation {
+  return {
+    rotationXDegrees: rotationXDegrees + deltaXDegrees,
+    rotationYDegrees: rotationYDegrees + deltaYDegrees,
   };
 }
 
@@ -568,8 +584,14 @@ export function mountFormatRouteMap(
       map.setPointerCapture?.(event.pointerId);
     }
     if (!isDragging) return;
-    rotationY = dragStartRotationY + deltaX * 0.48;
-    rotationX = Math.max(-62, Math.min(62, dragStartRotationX - deltaY * 0.4));
+    const nextRotation = offsetFormatGlobeRotation(
+      dragStartRotationX,
+      dragStartRotationY,
+      -deltaY * 0.4,
+      deltaX * 0.48,
+    );
+    rotationX = nextRotation.rotationXDegrees;
+    rotationY = nextRotation.rotationYDegrees;
     renderSurface();
     event.preventDefault();
   };
@@ -599,14 +621,26 @@ export function mountFormatRouteMap(
   const keyboardListener = (event: KeyboardEvent): void => {
     if (event.target !== map) return;
     const step = event.shiftKey ? 24 : 12;
-    if (event.key === "ArrowLeft") rotationY -= step;
-    else if (event.key === "ArrowRight") rotationY += step;
-    else if (event.key === "ArrowUp") rotationX = Math.min(62, rotationX + step);
-    else if (event.key === "ArrowDown") rotationX = Math.max(-62, rotationX - step);
+    let deltaRotationX = 0;
+    let deltaRotationY = 0;
+    if (event.key === "ArrowLeft") deltaRotationY = -step;
+    else if (event.key === "ArrowRight") deltaRotationY = step;
+    else if (event.key === "ArrowUp") deltaRotationX = step;
+    else if (event.key === "ArrowDown") deltaRotationX = -step;
     else if (event.key === "Home") {
       rotationX = 0;
       rotationY = 0;
     } else return;
+    if (event.key !== "Home") {
+      const nextRotation = offsetFormatGlobeRotation(
+        rotationX,
+        rotationY,
+        deltaRotationX,
+        deltaRotationY,
+      );
+      rotationX = nextRotation.rotationXDegrees;
+      rotationY = nextRotation.rotationYDegrees;
+    }
     event.preventDefault();
     renderSurface();
   };
