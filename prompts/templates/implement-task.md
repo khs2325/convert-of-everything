@@ -1,4 +1,4 @@
-You are working in the Convert of Everything repository.
+You are working in the Sprite Converter repository.
 
 Read AGENTS.md first and follow it strictly.
 

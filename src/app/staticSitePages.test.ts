@@ -99,6 +99,15 @@ describe("static multi-page site", () => {
     }
   });
 
+  it("uses the Sprite Converter brand consistently on every indexable page", async () => {
+    for (const page of manifest) {
+      const html = await readBuiltPage(page);
+      expect(html).toContain("Sprite Converter");
+      expect(html).not.toContain("Convert of Everything");
+      expect(html).not.toContain("C↔E");
+    }
+  });
+
   it("publishes crawl directives, authorship, and parseable structured data", async () => {
     for (const page of manifest) {
       const html = await readBuiltPage(page);
@@ -206,7 +215,7 @@ describe("static multi-page site", () => {
     const main = html.match(/<main\b[^>]*>[\s\S]*?<\/main>/iu)?.[0] ?? "";
     const words = stripHtml(main).match(/[A-Za-z0-9][A-Za-z0-9'’-]*/gu) ?? [];
     expect(html).toContain('id="app"');
-    expect(html).toContain("Convert of Everything");
+    expect(html).toContain("Sprite Converter");
     expect(html).toMatch(/<script[^>]+src="\/assets\//u);
     expect(html).toContain("Artwork is parsed and converted in your browser.");
     expect(html).toContain("A practical guide to rebuilding sprite projects");

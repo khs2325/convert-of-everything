@@ -276,7 +276,7 @@ const PRODUCT_COMPLETION_TASKS = [
   },
   {
     title: "Mount browser converter UI",
-    summary: "Replace the placeholder entry page with the mounted, browser-local Sprite to Aseprite converter flow.",
+    summary: "Replace the placeholder entry page with the mounted, browser-local Sprite Converter flow.",
     auditKeys: ["appRoot", "browserAppMounted", "productionBundle"],
     covers: [
       "appRoot",
@@ -301,7 +301,7 @@ const PRODUCT_COMPLETION_TASKS = [
       "Add an npm run dev script if it is missing.",
       "Ensure index.html has an app root element.",
       "Mount the real browser UI from src/index.ts.",
-      "Show the title Convert of Everything.",
+      "Show the title Sprite Converter.",
       "Explain that files are processed browser-locally.",
       "Include a mode selector for the available import modes.",
       "Include a file input and a drag-and-drop area.",

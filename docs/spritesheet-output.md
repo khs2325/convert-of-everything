@@ -90,7 +90,7 @@ and frame tags again:
     }
   ],
   "meta": {
-    "app": "Convert of Everything / Aseprite-compatible",
+    "app": "Sprite Converter / Aseprite-compatible",
     "version": "1",
     "image": "name-sheet.png",
     "format": "RGBA8888",

@@ -37,7 +37,7 @@ export const PAGE_CONTENT = {
   `,
 
   "/guides/aseprite-to-png-spritesheet/": `
-    <p>An Aseprite project can contain an editable timeline, raster layers, positioned cels, timing, and frame tags. Convert of Everything reads a deliberately bounded part of that structure into the same <code>SpriteProject</code> model used by every other importer. You can then create a new Aseprite file, separate flattened PNG frames, or a row-major PNG spritesheet with JSON metadata. All parsing, decompression, compositing, encoding, and downloads stay in the browser tab.</p>
+    <p>An Aseprite project can contain an editable timeline, raster layers, positioned cels, timing, and frame tags. Sprite Converter reads a deliberately bounded part of that structure into the same <code>SpriteProject</code> model used by every other importer. You can then create a new Aseprite file, separate flattened PNG frames, or a row-major PNG spritesheet with JSON metadata. All parsing, decompression, compositing, encoding, and downloads stay in the browser tab.</p>
 
     <h2>What the current reader accepts</h2>
     <p>The reader accepts <code>.ase</code> and <code>.aseprite</code> files that use 32-bit RGBA pixels and direct normal raster layers. It validates the file header, every frame and chunk envelope, frame durations, layer records, cel references, compressed pixel lengths, and supported frame tags before returning a project. Layer names, back-to-front order, visibility, opacity, signed cel positions, frame timing, RGBA pixels, and forward, reverse, or ping-pong tags are mapped into the normalized model.</p>
@@ -346,8 +346,8 @@ SpriteProject layer Color: cel(frame 0), cel(frame 1)</div>
     <p>Failing closed protects the meaning of the output. It is better to explain that a structure is unsupported than to return a file labeled editable after silently discarding data.</p>
 
     <h2>Inspect and reproduce the evidence</h2>
-    <p>The public samples are copied byte-for-byte from the repository's deterministic fixtures. Their generator can reproduce them locally, and automated tests assert that the published copies have not drifted from the inputs used by the importers. Start with the <a href="https://github.com/khs2325/convert-of-everything/blob/main/tests/fixtures/README.md">fixture inventory and provenance notes</a>, inspect the <a href="https://github.com/khs2325/convert-of-everything/blob/main/tests/fixtures/generate.mjs">deterministic generator</a>, and follow the <a href="https://github.com/khs2325/convert-of-everything/blob/main/src/core/conversion.integration.test.ts">end-to-end conversion assertions</a>. The <a href="https://github.com/khs2325/convert-of-everything/blob/main/src/core/exporters/aseprite/aseprite.test.ts">Aseprite writer tests</a> cover binary structure and validation.</p>
-    <p>Maintainer: <a href="https://github.com/khs2325">khs2325</a>. Corrections and reproducible compatibility reports belong in the <a href="https://github.com/khs2325/convert-of-everything/issues">public issue tracker</a>; use newly created synthetic artwork rather than private source files.</p>
+    <p>The public samples are copied byte-for-byte from the repository's deterministic fixtures. Their generator can reproduce them locally, and automated tests assert that the published copies have not drifted from the inputs used by the importers. Start with the <a href="https://github.com/khs2325/sprite-converter/blob/main/tests/fixtures/README.md">fixture inventory and provenance notes</a>, inspect the <a href="https://github.com/khs2325/sprite-converter/blob/main/tests/fixtures/generate.mjs">deterministic generator</a>, and follow the <a href="https://github.com/khs2325/sprite-converter/blob/main/src/core/conversion.integration.test.ts">end-to-end conversion assertions</a>. The <a href="https://github.com/khs2325/sprite-converter/blob/main/src/core/exporters/aseprite/aseprite.test.ts">Aseprite writer tests</a> cover binary structure and validation.</p>
+    <p>Maintainer: <a href="https://github.com/khs2325">khs2325</a>. Corrections and reproducible compatibility reports belong in the <a href="https://github.com/khs2325/sprite-converter/issues">public issue tracker</a>; use newly created synthetic artwork rather than private source files.</p>
   `,
 
   "/articles/": `
@@ -546,7 +546,7 @@ browser download</div>
   `,
 
   "/about/": `
-    <p>Convert of Everything is an open-source browser utility for moving supported sprite projects through one documented internal model. It rebuilds editable Aseprite timelines and can export normalized projects as Aseprite, flattened PNG frames, or a spritesheet with JSON metadata.</p>
+    <p>Sprite Converter is an open-source browser utility for moving supported sprite projects through one documented internal model. It rebuilds editable Aseprite timelines and can export normalized projects as Aseprite, flattened PNG frames, or a spritesheet with JSON metadata.</p>
 
     <h2>Why the project is conservative</h2>
     <p>Creative-file formats often contain far more than visible pixels. Groups, masks, effects, color profiles, tilemaps, text, vector data, animation controls, and application metadata may not have a faithful place in the current model. The importers reject ambiguous or unsupported structures instead of silently producing an output that appears more complete than it is.</p>
@@ -559,12 +559,12 @@ browser download</div>
     <p>The project includes focused work on PNG sequences, grids, atlas metadata, Piskel, Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, and PSD. The Pixilart 2.7 path is a representative example: a fixture-defined schema was replaced after a genuine local save revealed the actual container and per-frame PNG layer structure. Only synthetic pixels were committed, while the verified field relationships became tests and documentation.</p>
 
     <h2>Maintenance and source</h2>
-    <p>The public repository is maintained under the GitHub account <a href="https://github.com/khs2325">khs2325</a>. Source, tests, task history, format notes, and current issues are available at <a href="https://github.com/khs2325/convert-of-everything">github.com/khs2325/convert-of-everything</a>. The repository does not present itself as a company, Aseprite partnership, or endorsement.</p>
+    <p>The public repository is maintained under the GitHub account <a href="https://github.com/khs2325">khs2325</a>. Source, tests, task history, format notes, and current issues are available at <a href="https://github.com/khs2325/sprite-converter">github.com/khs2325/sprite-converter</a>. The repository does not present itself as a company, Aseprite partnership, or endorsement.</p>
     <p>Compatibility claims are reviewed against deterministic synthetic fixtures, importer unit tests, end-to-end conversion tests, and Aseprite writer tests. The public <a href="/compatibility-lab/">compatibility lab</a> exposes representative inputs and observed results. This page and the public evidence were last reviewed August 24, 2026.</p>
     <p>Development and compatibility research are ongoing. A listed subset describes what the current implementation has evidence to support; it does not promise every file from that application will convert.</p>
 
     <h2 id="contact">Questions and compatibility reports</h2>
-    <p>Use the <a href="https://github.com/khs2325/convert-of-everything/issues">public repository issue tracker</a> for reproducible bugs or documentation corrections. Do not post private artwork. A new tiny synthetic file that demonstrates the same structure is safer and usually easier to diagnose.</p>
+    <p>Use the <a href="https://github.com/khs2325/sprite-converter/issues">public repository issue tracker</a> for reproducible bugs or documentation corrections. Do not post private artwork. A new tiny synthetic file that demonstrates the same structure is safer and usually easier to diagnose.</p>
     <p>Before reporting, read <a href="/troubleshooting/">Troubleshooting</a> and the matching <a href="/guides/">format guide</a>. Useful reports identify the import mode, browser, operating system, Aseprite version, exact safe error message, and expected frame or layer behavior.</p>
   `,
 
@@ -593,12 +593,12 @@ browser download</div>
     <p>The current repository does not add an analytics service, remote error-reporting script, conversion telemetry, or direct payment processing. External hosting and support providers may operate their own systems when their pages are requested. No secret payment information should be entered into this static converter page.</p>
 
     <h2>Changes and questions</h2>
-    <p>Material changes to hosting, analytics, advertising, or artwork handling should be reflected here before deployment. For a technical explanation of the current boundary, read <a href="/articles/browser-local-conversion/">How browser-local conversion works</a>. Questions or corrections can be raised through the <a href="https://github.com/khs2325/convert-of-everything/issues">public issue tracker</a> without attaching private artwork.</p>
+    <p>Material changes to hosting, analytics, advertising, or artwork handling should be reflected here before deployment. For a technical explanation of the current boundary, read <a href="/articles/browser-local-conversion/">How browser-local conversion works</a>. Questions or corrections can be raised through the <a href="https://github.com/khs2325/sprite-converter/issues">public issue tracker</a> without attaching private artwork.</p>
   `,
 
   "/terms/": `
     <p class="review-line"><strong>Effective and last updated:</strong> August 24, 2026 · <strong>Maintainer:</strong> <a href="https://github.com/khs2325">khs2325</a></p>
-    <p>These terms describe practical conditions for using Convert of Everything. The name is a product identity, not a guarantee that every file or conversion direction is supported. Only the documented, tested sprite-format subsets are available.</p>
+    <p>These terms describe practical conditions for using Sprite Converter. The name is a product identity, not a guarantee that every file or conversion direction is supported. Only the documented, tested sprite-format subsets are available.</p>
 
     <h2>Permitted use</h2>
     <p>Use the converter only with files you have the right to process. You remain responsible for the source artwork, the generated output, and checking whether your use of either complies with applicable rights and obligations.</p>
@@ -620,6 +620,6 @@ browser download</div>
     <p>The project is an independent open-source utility. It does not claim an endorsement, partnership, or official affiliation with Aseprite or the applications whose supported file subsets it reads.</p>
 
     <h2>Project information</h2>
-    <p>Implementation details and current limitations are available in the <a href="https://github.com/khs2325/convert-of-everything">public repository</a>, the <a href="/guides/">conversion guides</a>, and <a href="/troubleshooting/">troubleshooting</a>. Privacy-specific details are in the <a href="/privacy/">Privacy Policy</a>.</p>
+    <p>Implementation details and current limitations are available in the <a href="https://github.com/khs2325/sprite-converter">public repository</a>, the <a href="/guides/">conversion guides</a>, and <a href="/troubleshooting/">troubleshooting</a>. Privacy-specific details are in the <a href="/privacy/">Privacy Policy</a>.</p>
   `,
 };

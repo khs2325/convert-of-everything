@@ -1,6 +1,6 @@
-# Convert of Everything
+# Sprite Converter
 
-Convert of Everything is a browser-local sprite format converter. It rebuilds
+Sprite Converter is a browser-local sprite format converter. It rebuilds
 editable Aseprite timelines from supported sources and converts normalized
 sprite projects into `.aseprite`, flattened PNG sequences, or spritesheet PNG
 + JSON output. It does not reconstruct information that is absent from a source.

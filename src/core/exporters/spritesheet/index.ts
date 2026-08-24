@@ -68,7 +68,7 @@ export function exportSpritesheet(
   const metadata = {
     frames: frameRecords,
     meta: {
-      app: "Convert of Everything / Aseprite-compatible",
+      app: "Sprite Converter / Aseprite-compatible",
       version: "1",
       image: imageName,
       format: "RGBA8888",

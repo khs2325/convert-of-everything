@@ -84,7 +84,7 @@ export function createSupportSection(
   heading.id = "support-heading";
   heading.textContent = "Support the project";
   freeNotice.textContent =
-    "Convert of Everything is free to use.";
+    "Sprite Converter is free to use.";
   privacyNotice.textContent =
     "Conversion stays browser-local, and files are not uploaded for conversion.";
   purpose.textContent =

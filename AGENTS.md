@@ -2,7 +2,7 @@
 
 ## Project
 
-This repository is `Convert of Everything`.
+This repository is `Sprite Converter`.
 
 Goal:
 Build a static browser-based app that converts sprite-related files into editable `.aseprite` files.

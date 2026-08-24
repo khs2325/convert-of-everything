@@ -1044,7 +1044,7 @@ export function createInformationalPages(document: Document): HTMLElement {
   const about = createSection(document, "about", "About", [
     createParagraph(
       document,
-      "Convert of Everything is an open-source browser tool for moving supported sprite projects between editable Aseprite, PNG sequence, and spritesheet workflows.",
+      "Sprite Converter is an open-source browser tool for moving supported sprite projects between editable Aseprite, PNG sequence, and spritesheet workflows.",
     ),
     createParagraph(
       document,
@@ -1056,8 +1056,8 @@ export function createInformationalPages(document: Document): HTMLElement {
         "Project repository: ",
         createExternalLink(
           document,
-          "https://github.com/khs2325/convert-of-everything",
-          "khs2325/convert-of-everything on GitHub",
+          "https://github.com/khs2325/sprite-converter",
+          "khs2325/sprite-converter on GitHub",
         ),
       );
       return paragraph;

@@ -2,7 +2,7 @@
 
 ## Main idea
 
-Convert of Everything is a static browser app. User artwork and metadata
+Sprite Converter is a static browser app. User artwork and metadata
 are read, decoded, converted, previewed, and exported in the browser. The app
 does not upload source files to a server or call remote image-processing APIs.
 

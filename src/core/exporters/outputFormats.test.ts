@@ -58,6 +58,7 @@ describe("flat output formats", () => {
       0, 0, 255, 255,
     ]);
     const metadata = JSON.parse(new TextDecoder().decode(result.jsonFile.bytes));
+    expect(metadata.meta.app).toBe("Sprite Converter / Aseprite-compatible");
     expect(metadata.frames.map((frame: { duration: number }) => frame.duration)).toEqual([80, 120]);
     expect(metadata.meta.frameTags).toEqual([
       { name: "walk", from: 0, to: 1, direction: "pingpong" },

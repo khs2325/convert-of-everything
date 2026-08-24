@@ -1,6 +1,6 @@
 # Browser Memory Limits
 
-Convert of Everything keeps selected artwork, metadata, decoded pixels,
+Sprite Converter keeps selected artwork, metadata, decoded pixels,
 conversion state, previews, and generated `.aseprite` bytes in the browser.
 There is no server upload, remote image-processing fallback, or telemetry path
 for working around memory limits.

@@ -2,7 +2,7 @@
 
 ## Product name
 
-Convert of Everything
+Sprite Converter
 
 ## Goal
 

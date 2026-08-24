@@ -1,6 +1,6 @@
 # AdSense readiness
 
-Convert of Everything has a crawlable multi-page content architecture
+Sprite Converter has a crawlable multi-page content architecture
 surrounding the browser-local converter. This improves independent page value,
 technical transparency, navigation, and review readiness. It does not
 guarantee AdSense approval.
