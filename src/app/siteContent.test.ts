@@ -288,6 +288,7 @@ describe("AdSense readiness site content", () => {
       .toBeGreaterThan(650);
     expect(hrefs).toEqual(expect.arrayContaining([
       "/guides/",
+      "/guides/resprite-to-aseprite/",
       "/articles/browser-local-conversion/",
       "/troubleshooting/",
     ]));
@@ -309,6 +310,7 @@ describe("AdSense readiness site content", () => {
   it("keeps supported-format labels aligned with implemented importers", () => {
     expect(SUPPORTED_FORMATS.map((format) => format.input)).toEqual([
       "Aseprite project",
+      "ReSprite project",
       "PNG sequence",
       "Spritesheet grid",
       "Spritesheet PNG + JSON",

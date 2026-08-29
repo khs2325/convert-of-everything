@@ -76,10 +76,11 @@ export const FORMAT_ROUTE_NODES: readonly FormatRouteNode[] = [
   { id: "pixelorama", abbreviation: "PXO", iconSrc: "/format-icons/pixelorama.png", label: "Pixelorama", position: 9, sourceMode: "pixelorama" },
   { id: "krita", abbreviation: "KRA", iconSrc: "/format-icons/krita.ico", label: "Krita", position: 10, sourceMode: "krita" },
   { id: "psd", abbreviation: "PSD", label: "Photoshop", position: 11, sourceMode: "psd" },
-  { id: "aseprite", abbreviation: "ASE", iconSrc: "/format-icons/aseprite.png", label: "Aseprite", position: 12, sourceMode: "aseprite", outputFormat: "aseprite" },
+  { id: "resprite", abbreviation: "RSP", label: "ReSprite", position: 12, sourceMode: "resprite" },
+  { id: "aseprite", abbreviation: "ASE", iconSrc: "/format-icons/aseprite.png", label: "Aseprite", position: 13, sourceMode: "aseprite", outputFormat: "aseprite" },
 ] as const;
 
-const FORMAT_LATITUDES = [18, -24, 4, 32, -8, 20, -34, 2, 35, -18, -36, 0] as const;
+const FORMAT_LATITUDES = [18, -24, 4, 32, -8, 20, -34, 2, 35, -18, -36, 0, 26] as const;
 const FORMAT_GLOBE_DRAG_THRESHOLD = 6;
 
 function getNode(id: string | null): FormatRouteNode | undefined {

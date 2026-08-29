@@ -9,6 +9,7 @@ export const PAGE_CONTENT = {
       <a class="link-card" href="/guides/spritesheet-to-aseprite/"><strong>One packed spritesheet</strong><span>Use an exact grid for equal cells, or matching JSON when an atlas uses rectangles, trimming, or rotation.</span></a>
       <a class="link-card" href="/guides/pixilart-to-aseprite/"><strong>Pixilart 2.7 project</strong><span>Use the observed genuine 2.7 project structure to preserve the supported cross-frame raster layers.</span></a>
       <a class="link-card" href="/guides/piskel-to-aseprite/"><strong>Piskel project</strong><span>Use a supported model-version-2 file when the project layers and global FPS are still available.</span></a>
+      <a class="link-card" href="/guides/resprite-to-aseprite/"><strong>ReSprite to Aseprite</strong><span>Convert the documented ReSprite bundle subset while keeping supported frames, timing, clip tags, and normal raster layers.</span></a>
       <a class="link-card" href="/guides/gif-apng-to-aseprite/"><strong>GIF or APNG animation</strong><span>Decode rendered animation frames, timing, transparency, and supported compositing into one generated layer.</span></a>
       <a class="link-card" href="/guides/project-files-to-aseprite/"><strong>PSD, Krita, OpenRaster, or Pixelorama</strong><span>Compare the deliberately narrow raster subsets before expecting layers, opacity, offsets, or animation.</span></a>
     </div>
@@ -25,11 +26,11 @@ export const PAGE_CONTENT = {
     </tbody></table></div>
 
     <h2>When layers matter</h2>
-    <p>Choose the original project file before exporting a flat image. The current importers can preserve supported layer data from Aseprite, Pixilart 2.7, Piskel, Pixelorama, OpenRaster, Krita, and PSD inputs. That statement is intentionally conditional: groups, masks, effects, vector objects, tilemaps, non-normal blends, and other editor-specific features are often rejected because the internal model cannot represent them faithfully.</p>
+    <p>Choose the original project file before exporting a flat image. The current importers can preserve supported layer data from Aseprite, ReSprite, Pixilart 2.7, Piskel, Pixelorama, OpenRaster, Krita, and PSD inputs. That statement is intentionally conditional: groups, masks, effects, vector objects, tilemaps, non-normal blends, and other editor-specific features are often rejected because the internal model cannot represent them faithfully.</p>
     <p class="callout warning"><strong>Flat means flat.</strong> PNG, GIF, APNG, and spritesheet pixels cannot reveal whether a red pixel came from an “Ink” layer, a “Color” layer, or a flattened effect. The converter rebuilds a timeline; it does not claim to recover absent layers.</p>
 
     <h2>When timing matters</h2>
-    <p>GIF and APNG carry per-frame delays, supported atlas JSON may carry durations, Piskel contributes one FPS-derived duration to every visible frame, Pixilart contributes each frame's millisecond <code>speed</code>, and Pixelorama combines its FPS with a frame duration multiplier. PNG sequence and grid modes start with a 100 ms default. All values are normalized to the internal whole-millisecond range of 1 through 65,535 before export.</p>
+    <p>GIF and APNG carry per-frame delays, supported atlas JSON may carry durations, ReSprite maps frame-rate duration units, Piskel contributes one FPS-derived duration to every visible frame, Pixilart contributes each frame's millisecond <code>speed</code>, and Pixelorama combines its FPS with a frame duration multiplier. PNG sequence and grid modes start with a 100 ms default. All values are normalized to the internal whole-millisecond range of 1 through 65,535 before export.</p>
 
     <h2>A practical decision rule</h2>
     <ol class="steps"><li>If the original editor project opens and its format is supported, start there when layers matter.</li><li>If you only need visible animation and have separate frames, choose the PNG sequence.</li><li>If frames share one image, use grid mode only when every cell is equal and the grid covers the entire sheet exactly.</li><li>If a matching atlas JSON exists, prefer it for packed, trimmed, rotated, or individually timed frames.</li><li>If the source is GIF or APNG, expect a faithful supported compositing result on one layer, not the authoring structure.</li></ol>
@@ -220,6 +221,44 @@ SpriteProject layer Color: cel(frame 0), cel(frame 1)</div>
     <p>Compare with the <a href="/guides/pixilart-to-aseprite/">Pixilart guide</a> only when you actually have a Pixilart file—the two JSON containers and layer reconstruction rules are substantially different.</p>
   `,
 
+  "/guides/resprite-to-aseprite/": `
+    <p>Convert a supported ReSprite project to Aseprite when you have an original <code>.resprite</code> project and want a new editable <code>.aseprite</code> file without sending the artwork to a conversion server. The browser reads the bundle, validates its project metadata, decodes supported cel PNGs, maps the result into <code>SpriteProject</code>, and prepares the Aseprite download locally.</p>
+    <p class="callout success"><strong>Start with the simplest official path:</strong> ReSprite itself documents Aseprite as an export format. If ReSprite is installed and opens the project correctly, its native <a href="https://resprite.fengeon.com/docs/basic/export">Menu &gt; Export &gt; Aseprite</a> workflow is the first option to try. This site is a browser-local alternative for the deliberately bounded subset described below.</p>
+
+    <h2>How to convert ReSprite to Aseprite</h2>
+    <ol class="steps"><li>Keep the original <code>.resprite</code> project unchanged and work from a copy.</li><li>Open the <a href="/#converter">Sprite Converter</a> and select <strong>ReSprite</strong> as the source and <strong>Aseprite</strong> as the destination on the format surface.</li><li>Add exactly one genuine <code>.resprite</code> file. Do not rename an unrelated ZIP archive or flat image.</li><li>Start the conversion and wait while the browser validates the archive, project document, raster layers, frames, and cel images.</li><li>Review the local preview, frame count, timing, layer names, visibility, opacity, and cel placement.</li><li>Download the generated <code>.aseprite</code> file and open it in Aseprite before replacing any part of an art pipeline.</li></ol>
+    <p>Selected project bytes stay in the browser tab throughout parsing, image decoding, conversion, preview, and download. The static site has no artwork-upload endpoint or remote conversion fallback. Ordinary page assets are still served by the host, as explained in the <a href="/articles/browser-local-conversion/">browser-local processing article</a>.</p>
+
+    <h2>What the supported importer preserves</h2>
+    <p>A genuine ReSprite file is a project bundle containing a project document, metadata, and cel image data. The importer checks the ZIP directory and entry checksums, finds one <code>.resprite/document.json</code> root, compares the canvas and frame counts in <code>document.json</code> and <code>meta.json</code>, and then reads only the entries required by the supported model.</p>
+    <div class="table-scroll"><table><caption>ReSprite fields mapped into the generated Aseprite project</caption><thead><tr><th>Source information</th><th>Generated result</th><th>Verification</th></tr></thead><tbody>
+      <tr><td>Canvas width and height</td><td>32-bit RGBA Aseprite canvas</td><td>Compare document dimensions after opening the output.</td></tr>
+      <tr><td>Frames and frame-rate duration units</td><td>Ordered frames with normalized whole-millisecond durations</td><td>Check every frame, not only the total playback time.</td></tr>
+      <tr><td>Clip heads with forward, reverse, or ping-pong direction</td><td>Supported Aseprite frame tags</td><td>Confirm tag names, inclusive ranges, and playback direction.</td></tr>
+      <tr><td>Normal raster layer records</td><td>Separate normal raster layers in back-to-front order</td><td>Compare names, order, visibility, and opacity.</td></tr>
+      <tr><td>Concrete and inherited cels</td><td>One editable RGBA cel on each applicable frame</td><td>Inspect reused frames and cel positions for unexpected movement.</td></tr>
+      <tr><td>CellData PNG pixels and signed positions</td><td>Decoded RGBA pixels placed at the supported x/y coordinate</td><td>Compare transparency and edge clipping at representative frames.</td></tr>
+    </tbody></table></div>
+    <p>Layers are preserved only because the supported ReSprite source contains explicit layer and cel records. This is different from converting a flattened PNG, which cannot reveal the original layer boundaries. The converter does not claim to recover missing layers or to provide a lossless round trip for every editor feature.</p>
+
+    <h2>Features intentionally outside this subset</h2>
+    <p>The current <code>SpriteProject</code> model and Aseprite writer represent normal RGBA raster layers, positioned cels, frame durations, and supported tags. ReSprite layer groups, clipping masks, non-normal blend modes, per-cel opacity, palettes, tilemaps, reference images, Deco modules, and editor-only metadata do not have a verified mapping in this path. The importer rejects unsupported structural features instead of silently flattening or discarding them while reporting success.</p>
+    <p>ReSprite's own documentation also notes that not every editor feature maps identically when exporting to other project formats. Consult the official <a href="https://resprite.fengeon.com/docs/other/other-format">format compatibility notes</a> when a project uses clipping, palette, grid, or blend behavior that matters. Native export may cover more than this site's conservative browser importer, but the generated file should still be inspected in Aseprite.</p>
+
+    <h2>Why a ReSprite file may be rejected</h2>
+    <h3>The file is not a valid project bundle</h3><p>The importer requires one safe ZIP root ending in <code>.resprite</code>, valid central-directory metadata and checksums, plus matching <code>document.json</code> and <code>meta.json</code>. Truncated archives, unsafe paths, encrypted entries, ZIP64 structures, missing cel PNGs, or inconsistent dimensions stop conversion.</p>
+    <h3>The project uses an unsupported layer feature</h3><p>Make a copy in ReSprite and simplify it to ordinary normal raster layers. Remove groups, clipping masks, special blend modes, or per-cel opacity only when doing so preserves the visual meaning you need. Otherwise, use ReSprite's native Aseprite export.</p>
+    <h3>The project exceeds a browser-local limit</h3><p>The selected archive is limited to 32 MiB, while expanded entries, decoded pixels, frame counts, layers, and cels have separate allocation limits. Reduce canvas size, frames, or layer count in a copy, or perform the conversion in the source editor.</p>
+    <h3>The output differs from the project</h3><p>First compare canvas size, frame count, durations, tag ranges, layer order, visibility, opacity, cel coordinates, and transparency. A visual difference involving masks, blends, groups, palettes, or editor metadata usually indicates a format feature outside the documented subset rather than recoverable missing pixels.</p>
+
+    <h2>ReSprite to Aseprite questions</h2>
+    <h3>Can I convert ReSprite to Aseprite online without uploading the file?</h3><p>Yes, for the supported subset on this page. The app performs the conversion in the browser and offers a local download. No artwork is sent to a project conversion server.</p>
+    <h3>Does the conversion preserve ReSprite layers?</h3><p>It preserves supported normal raster layers when those layer records and cel PNGs are present in the source bundle. It does not preserve or imitate unsupported groups, clipping masks, special blends, or editor-only features.</p>
+    <h3>Is this better than exporting from ReSprite?</h3><p>Not universally. ReSprite already provides an official Aseprite export path, so use it when available—especially for projects outside this site's subset. This converter is useful when a transparent, inspectable, browser-local workflow fits your needs.</p>
+    <h3>What should I verify in Aseprite?</h3><p>Check dimensions, frames, durations, tag names and directions, layer names and order, visibility, opacity, cel placement, transparency, and representative pixels. Follow the site's <a href="/articles/verify-sprite-conversion/">step-by-step verification method</a> before relying on the result.</p>
+    <p>For general selection, validation, memory, and download problems, continue with <a href="/troubleshooting/">Sprite Converter troubleshooting</a>. The public <a href="https://github.com/khs2325/sprite-converter">GitHub repository</a> contains the importer and synthetic tests used to document this supported boundary.</p>
+  `,
+
   "/guides/gif-apng-to-aseprite/": `
     <p>GIF and APNG are animated rendered formats. They describe how full or partial pixel rectangles appear over time, including timing and compositing instructions. They do not contain the original editor layers used to author those rendered frames.</p>
 
@@ -394,7 +433,7 @@ SpriteProject layer Color: cel(frame 0), cel(frame 1)</div>
 
     <h2>Frames: time without pixels</h2>
     <p>A frame record identifies one timeline position and how long it displays. It does not own an image directly. Frame indexes must be contiguous and match their array positions. This separation lets many layers contribute different cels to the same moment.</p>
-    <p>A three-frame project might use 80 ms, 120 ms, and 200 ms. GIF, APNG, atlas JSON, Pixilart, Piskel, and Pixelorama derive those values differently, but the Aseprite exporter consumes the normalized result in exactly one form.</p>
+    <p>A three-frame project might use 80 ms, 120 ms, and 200 ms. GIF, APNG, atlas JSON, ReSprite, Pixilart, Piskel, and Pixelorama derive those values differently, but the Aseprite exporter consumes the normalized result in exactly one form.</p>
 
     <h2>Layers: stack-wide properties</h2>
     <p>A layer has stable identity, a display name, visibility, opacity from 0 to 255, and an ordered list of cels. Array order becomes Aseprite layer order. Opacity remains a layer property; the exporter does not bake it into every pixel.</p>

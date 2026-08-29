@@ -6,6 +6,7 @@ import { PixeloramaImportError } from "../core/importers/pixelorama";
 import { PixilImportError } from "../core/importers/pixil";
 import { PiskelImportError } from "../core/importers/piskel";
 import { PsdParserAdapterError } from "../core/importers/psd";
+import { RespriteImportError } from "../core/importers/resprite";
 import { SpritesheetJsonImportError } from "../core/importers/spritesheetJson";
 import {
   bindFileImportControl,
@@ -143,6 +144,11 @@ describe("bindFileImportControl", () => {
       kind: "psd",
       bytes: new ArrayBuffer(0),
     })).toMatchObject({ typeLabel: "PSD project" });
+    expect(getSourceFilePresentation({
+      file: new File(["resprite"], "sprite.resprite"),
+      kind: "resprite",
+      bytes: new ArrayBuffer(0),
+    })).toMatchObject({ typeLabel: "ReSprite project" });
     expect(formatFileSize(1)).toBe("1 byte");
   });
 
@@ -288,6 +294,18 @@ describe("bindFileImportControl", () => {
       .toBe("aseprite");
   });
 
+  it("advertises and classifies ReSprite sources", () => {
+    const acceptedTypes = SUPPORTED_SOURCE_ACCEPT.split(",");
+    expect(acceptedTypes).toEqual(expect.arrayContaining([
+      ".resprite",
+      "application/x-resprite",
+    ]));
+    expect(getSourceKind({ name: "scene.RESPRITE", type: "" }))
+      .toBe("resprite");
+    expect(getSourceKind({ name: "scene", type: "application/x-resprite" }))
+      .toBe("resprite");
+  });
+
   it("reads PNG and JSON files locally with browser File APIs", async () => {
     const input = createInput();
     const errorOutput = createOutput();
@@ -361,6 +379,7 @@ describe("bindFileImportControl", () => {
     ["pixelorama", "sprite.pxo", "application/x-pixelorama", "Selected 1 Pixelorama project"],
     ["krita", "sprite.kra", "application/x-krita", "Selected 1 Krita project"],
     ["psd", "sprite.psd", "image/vnd.adobe.photoshop", "Selected 1 PSD project. The supported RGB 8-bit raster-layer subset will be checked browser-locally."],
+    ["resprite", "sprite.resprite", "application/x-resprite", "Selected 1 ReSprite project. Supported frames and normal raster layers will be checked browser-locally."],
     ["aseprite", "sprite.aseprite", "application/x-aseprite", "Selected 1 Aseprite project. The supported 32-bit RGBA subset will be checked browser-locally."],
     ["pixil", "sprite.pixil", "application/octet-stream", "Selected 1 Pixil project. Ready to convert browser-locally."],
   ] as const)("reads one %s source locally", async (format, name, type, status) => {
@@ -409,7 +428,7 @@ describe("bindFileImportControl", () => {
     expect(errorOutput).toMatchObject({
       hidden: false,
       textContent:
-        'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite files only.',
+        'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, ReSprite, or Aseprite files only.',
     });
     expect(statusOutput.hidden).toBe(true);
   });
@@ -430,6 +449,24 @@ describe("bindFileImportControl", () => {
     expect(read).not.toHaveBeenCalled();
     expect(onFilesImported).not.toHaveBeenCalled();
     expect(errorOutput.textContent).toContain("exceeds the 67108864-byte");
+  });
+
+  it("rejects an oversized ReSprite file before reading its bytes", async () => {
+    const input = createInput();
+    const errorOutput = createOutput();
+    const onFilesImported = vi.fn();
+    const file = new File([], "huge.resprite", { type: "application/x-resprite" });
+    Object.defineProperty(file, "size", { value: 32 * 1024 * 1024 + 1 });
+    const read = vi.spyOn(file, "arrayBuffer");
+    const control = bindFileImportControl(input, errorOutput, createOutput(), {
+      format: "resprite",
+      onFilesImported,
+    });
+
+    expect(await control.selectFiles([file])).toBe(false);
+    expect(read).not.toHaveBeenCalled();
+    expect(onFilesImported).not.toHaveBeenCalled();
+    expect(errorOutput.textContent).toContain("exceeds the 33554432-byte");
   });
 
   it("shows format-specific importer errors without displaying file contents", async () => {
@@ -859,6 +896,65 @@ describe("bindFileImportControl", () => {
     expect(errorOutput.textContent).not.toContain(privateMessage);
   });
 
+  it("includes safe ReSprite importer detail in selection errors", async () => {
+    const errorOutput = createOutput();
+    const control = bindFileImportControl(
+      createInput(),
+      errorOutput,
+      createOutput(),
+      {
+        format: "resprite",
+        onFilesImported: () => {
+          throw new RespriteImportError(
+            "unsupported-feature",
+            "ReSprite layer 1 is a group, which is unsupported.",
+          );
+        },
+      },
+    );
+
+    expect(await control.selectFiles([
+      new File(["bundle"], "scene.resprite", {
+        type: "application/x-resprite",
+      }),
+    ])).toBe(false);
+
+    expect(errorOutput.textContent).toBe(
+      "ReSprite project import failed. " +
+        "ReSprite layer 1 is a group, which is unsupported. " +
+        "Check that the .resprite bundle contains supported normal raster layers, frame metadata, and CellData PNG files.",
+    );
+    expect(errorOutput.textContent).not.toContain("RespriteImportError");
+  });
+
+  it("does not expose arbitrary ReSprite source details from selection errors", async () => {
+    const privateMessage = "C:\\Users\\private\\scene.resprite bytes";
+    const errorOutput = createOutput();
+    const control = bindFileImportControl(
+      createInput(),
+      errorOutput,
+      createOutput(),
+      {
+        format: "resprite",
+        onFilesImported: () => {
+          throw new Error(privateMessage);
+        },
+      },
+    );
+
+    expect(await control.selectFiles([
+      new File(["bundle"], "scene.resprite", {
+        type: "application/x-resprite",
+      }),
+    ])).toBe(false);
+
+    expect(errorOutput.textContent).toBe(
+      "ReSprite project import failed. " +
+        "Check that the .resprite bundle contains supported normal raster layers, frame metadata, and CellData PNG files.",
+    );
+    expect(errorOutput.textContent).not.toContain(privateMessage);
+  });
+
   it("uses files from the browser input change event and removes its handler", async () => {
     const input = createInput();
     const onFilesImported = vi.fn();
@@ -943,7 +1039,7 @@ describe("bindFileImportControl", () => {
 
     await vi.waitFor(() => expect(errorOutput.hidden).toBe(false));
     expect(errorOutput.textContent).toBe(
-      'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite files only.',
+      'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, ReSprite, or Aseprite files only.',
     );
     expect(onFilesImported).not.toHaveBeenCalled();
   });
@@ -966,7 +1062,7 @@ describe("bindFileImportControl", () => {
 
     await vi.waitFor(() => expect(errorOutput.hidden).toBe(false));
     expect(errorOutput.textContent).toBe(
-      'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite files only.',
+      'Unsupported file "notes.txt". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, ReSprite, or Aseprite files only.',
     );
     expect(readPng).not.toHaveBeenCalled();
     expect(onFilesImported).not.toHaveBeenCalled();

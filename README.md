@@ -24,6 +24,14 @@ The current conversion core supports:
   groups, tilemaps, blend modes, profiles, slices, and editor metadata are
   rejected rather than silently presented as preserved.
 
+- **ReSprite project:** accepts exactly one `.resprite` bundle in the
+  [documented normal-raster subset](docs/resprite-format.md). It preserves
+  supported frames, timing, clip tags, normal raster layer names and order,
+  visibility, layer opacity, concrete and inherited cels, signed placement,
+  and decoded PNG pixels. Groups, clipping masks, non-normal blend modes,
+  per-cel opacity, palettes, tilemaps, reference images, and editor-only
+  metadata are outside this browser importer's subset.
+
 - **PNG sequence:** each PNG becomes one frame, in the order supplied. Every
   image must have the same dimensions. Frames use a configurable duration,
   with a default of 100 ms.
@@ -81,7 +89,7 @@ The current conversion core supports:
   frames, timing, offsets, alpha blending, and disposal behavior are rebuilt on
   one generated layer.
 
-These inputs rebuild a timeline from the extracted frames. Piskel, OpenRaster,
+These inputs rebuild a timeline from the extracted frames. ReSprite, Piskel, OpenRaster,
 Pixelorama, Pixil/Pixilart, Krita, and PSD support is limited to each documented
 subset and is not described as universal, perfect, or lossless conversion. GIF and APNG
 support is likewise limited to each documented subset. These flat animation
@@ -109,7 +117,7 @@ Artwork and metadata are read and processed in the browser. Conversion and
 output generation do not upload user files to a server or send them to a
 remote image-processing service. The generated file is downloaded locally
 using browser APIs. Selected files can be reviewed and removed before
-conversion; GIF, APNG, OpenRaster, Pixelorama, Pixil/Pixilart, Krita, and PSD
+conversion; ReSprite, GIF, APNG, OpenRaster, Pixelorama, Pixil/Pixilart, Krita, and PSD
 sources use document-style file cards, while PNG thumbnail previews and the
 spritesheet grid overlay use browser-local object URLs that are released when
 no longer needed.
@@ -176,7 +184,7 @@ named `Main` and place one cel on it for each converted frame.
 
 Layer names, visibility, opacity, and multiple layers can be written when a
 source format contains that layer data and an importer preserves it. Supported
-Piskel, OpenRaster, Pixelorama, Pixil/Pixilart, Krita, and PSD inputs may contain
+ReSprite, Piskel, OpenRaster, Pixelorama, Pixil/Pixilart, Krita, and PSD inputs may contain
 layer data; PNG sequences, spritesheets, GIF, and APNG do not. Conversion is
 therefore not described as lossless or as restoring an original Aseprite file.
 

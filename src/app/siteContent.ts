@@ -60,6 +60,34 @@ export const SUPPORTED_FORMATS: readonly FormatSupport[] = [
     },
   },
   {
+    input: "ReSprite project",
+    requiredFiles: "Exactly one `.resprite` project bundle from the documented normal-raster subset.",
+    animation: "Yes, supported frames and clip tags become timeline frames and frame tags.",
+    layerPreservation:
+      "Preserves supported normal raster layers, names, order, visibility, opacity, cel positions, inherited cels, and PNG pixels.",
+    duration: "Maps ReSprite frame-rate units to supported whole-millisecond frame durations.",
+    limitations:
+      "Groups, clipping masks, non-normal blend modes, per-cel opacity, palettes, tilemaps, reference images, and editor-only metadata are rejected or not converted.",
+    supportLevel: "Limited support",
+    guide: {
+      whenToUse:
+        "Use this when you have the original `.resprite` project and want a browser-local Aseprite output from the documented subset.",
+      preparation: [
+        "Keep the original project unchanged and convert a copy.",
+        "Use ordinary normal raster layers without groups or clipping masks.",
+        "Use ReSprite's own Aseprite export when the project relies on features outside this browser importer's subset.",
+      ],
+      expectedOutput:
+        "An editable Aseprite timeline containing the supported source frames, timing, clip tags, and normal raster layers.",
+      commonMistakes: [
+        "Expecting every ReSprite editor feature or metadata record to map to Aseprite.",
+        "Renaming a different ZIP archive to `.resprite` instead of using a genuine project bundle.",
+      ],
+      troubleshooting:
+        "If import is rejected, simplify a copy to normal raster layers or use ReSprite's native Aseprite export.",
+    },
+  },
+  {
     input: "PNG sequence",
     requiredFiles: "One or more `.png` files with the same canvas size.",
     animation: "Yes, each PNG becomes one frame.",
@@ -506,7 +534,7 @@ export function createModeDecisionHelper(document: Document): HTMLElement {
     createCard(document, "I have a project file", [
       createParagraph(
         document,
-        "Select the matching project mode for Aseprite, Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, or PSD. Supported layers are preserved only when the source file contains supported layer data.",
+        "Select the matching project mode for Aseprite, ReSprite, Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, or PSD. Supported layers are preserved only when the source file contains supported layer data.",
       ),
     ]),
     createCard(document, "I have GIF or APNG animation", [
@@ -616,7 +644,7 @@ export function createHomepageGuide(document: Document): HTMLElement {
   const projectCard = createCard(document, "Start with an original project file", [
     createParagraph(
       document,
-      "Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD can contain real raster-layer records. The matching importer preserves supported layer data only when those records exist and fit the documented subset. Editor-only effects, unsupported blend modes, groups, vectors, or ambiguous metadata may be rejected rather than silently flattened.",
+      "ReSprite, Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD can contain real raster-layer records. The matching importer preserves supported layer data only when those records exist and fit the documented subset. Editor-only effects, unsupported blend modes, groups, vectors, or ambiguous metadata may be rejected rather than silently flattened.",
     ),
   ]);
   const sequenceCard = createCard(document, "Use PNG frames for a known sequence", [
@@ -641,7 +669,11 @@ export function createHomepageGuide(document: Document): HTMLElement {
   guideLink.href = "/guides/";
   guideLink.textContent = "Compare every supported source format";
   guideLink.className = "guide-detail-link";
-  projectCard.append(guideLink);
+  const respriteGuideLink = document.createElement("a");
+  respriteGuideLink.href = "/guides/resprite-to-aseprite/";
+  respriteGuideLink.textContent = "Read the ReSprite to Aseprite guide";
+  respriteGuideLink.className = "guide-detail-link";
+  projectCard.append(guideLink, respriteGuideLink);
   sourceCards.className = "card-grid homepage-source-grid";
   sourceCards.append(projectCard, sequenceCard, sheetCard, animationCard);
 
@@ -842,7 +874,7 @@ export function createInformationalPages(document: Document): HTMLElement {
       ],
       [
         "Structured project formats",
-        "Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD can preserve supported layers only when the source contains supported layer data.",
+        "ReSprite, Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD can preserve supported layers only when the source contains supported layer data.",
       ],
     ]),
   ]);
@@ -933,7 +965,7 @@ export function createInformationalPages(document: Document): HTMLElement {
         "Unsupported blend modes, effects, groups, masks, smart objects, adjustment layers, vector layers, tilemaps, and editor-only metadata may be rejected or omitted according to each importer.",
         "Large files can consume significant browser memory because decoded pixels, preview images, frame buffers, and output bytes all live in the browser process.",
         "Browser limits vary by device, operating system, and available memory.",
-        "Output may not preserve every feature from Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, PSD, GIF, or APNG files.",
+        "Output may not preserve every feature from ReSprite, Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, PSD, GIF, or APNG files.",
       ]),
     ],
   );
@@ -1004,11 +1036,11 @@ export function createInformationalPages(document: Document): HTMLElement {
       ],
       [
         "Which formats preserve layers?",
-        "Structured project formats can preserve supported layers when the source contains supported layer data: Aseprite, Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD have documented limited subsets.",
+        "Structured project formats can preserve supported layers when the source contains supported layer data: Aseprite, ReSprite, Piskel, Pixil/Pixilart, OpenRaster, Pixelorama, Krita, and PSD have documented limited subsets.",
       ],
       [
         "Can animations be converted?",
-        "Yes. PNG sequences, grid spritesheets, spritesheet JSON, Piskel, Pixil/Pixilart, Pixelorama, GIF, APNG, and some documented project-format subsets can produce timeline frames.",
+        "Yes. PNG sequences, grid spritesheets, spritesheet JSON, ReSprite, Piskel, Pixil/Pixilart, Pixelorama, GIF, APNG, and some documented project-format subsets can produce timeline frames.",
       ],
       [
         "Why was my file rejected?",

@@ -29,6 +29,10 @@ import {
   importPsd,
 } from "../core/importers/psd";
 import {
+  getRespriteImportDiagnostic,
+  importResprite,
+} from "../core/importers/resprite";
+import {
   getPiskelImportDiagnostic,
   importPiskel,
   PiskelImportError,
@@ -86,6 +90,7 @@ type ConverterImporters = {
   importPixil: typeof importPixil;
   importPngSequence: typeof importPngSequence;
   importPsd: typeof importPsd;
+  importResprite: typeof importResprite;
   importPiskel: typeof importPiskel;
   importSpritesheetGrid: typeof importSpritesheetGrid;
   importSpritesheetJson: typeof importSpritesheetJson;
@@ -126,6 +131,7 @@ const DEFAULT_IMPORTERS: ConverterImporters = {
   importPixil,
   importPngSequence,
   importPsd,
+  importResprite,
   importPiskel,
   importSpritesheetGrid,
   importSpritesheetJson,
@@ -143,6 +149,7 @@ export const MODE_LABELS: Record<FileImportFormat, string> = {
   pixelorama: "Pixelorama project",
   krita: "Krita project",
   psd: "PSD project",
+  resprite: "ReSprite project",
   aseprite: "Aseprite project",
 };
 
@@ -158,6 +165,7 @@ export const MODE_FILE_ACCEPT: Record<FileImportFormat, string> = {
   pixelorama: ".pxo,application/x-pixelorama",
   krita: ".kra,application/x-krita,application/x-kra",
   psd: ".psd,image/vnd.adobe.photoshop,image/x-photoshop,image/psd",
+  resprite: ".resprite,application/x-resprite",
   aseprite: ".ase,.aseprite,application/x-aseprite,image/x-aseprite",
 };
 
@@ -188,6 +196,9 @@ export function getImportDropInstructions(mode: FileImportFormat): string {
   }
   if (mode === "psd") {
     return "Drop exactly one .psd file from the RGB 8-bit raster-layer subset here, or choose one below.";
+  }
+  if (mode === "resprite") {
+    return "Drop exactly one .resprite project bundle here, or choose one below. Supported files are converted entirely in this browser.";
   }
   return "Drag and drop a supported sprite source here, or choose files below.";
 }
@@ -282,6 +293,13 @@ const MODE_HELP: Record<FileImportFormat, ModeHelp> = {
       "One 100 ms frame with supported raster layer names, order, visibility, opacity, placement, and decoded RGBA pixels.",
     limitations:
       "Text layers, smart objects, adjustment layers, effects, unsupported blend modes, unsupported color modes, and PSB are outside the supported subset.",
+  },
+  resprite: {
+    expectedFiles: "Exactly one `.resprite` project bundle from the validated ZIP and document.json subset.",
+    preserves:
+      "Supported frames, timing, clip tags, normal raster layers, names, order, visibility, opacity, cel positions, and PNG pixels.",
+    limitations:
+      "Layer groups, clipping masks, non-normal blend modes, per-cel opacity, palettes, tilemaps, reference images, and editor-only metadata are not converted.",
   },
 };
 
@@ -611,6 +629,7 @@ export function getSourceSelectionError(
   const pixeloramaCount = files.filter((file) => file.kind === "pxo").length;
   const kritaCount = files.filter((file) => file.kind === "kra").length;
   const psdCount = files.filter((file) => file.kind === "psd").length;
+  const respriteCount = files.filter((file) => file.kind === "resprite").length;
   const asepriteCount = files.filter((file) => file.kind === "aseprite").length;
 
   if (mode === "aseprite") {
@@ -669,6 +688,11 @@ export function getSourceSelectionError(
       ? null
       : "PSD mode requires exactly one .psd file.";
   }
+  if (mode === "resprite") {
+    return respriteCount === 1 && files.length === 1
+      ? null
+      : "ReSprite mode requires exactly one .resprite file.";
+  }
   return files.length === 1 && apngCount + pngCount === 1
     ? null
     : "APNG mode requires exactly one .apng or APNG-compatible .png file.";
@@ -697,7 +721,6 @@ export async function convertSourceFiles(
       new Uint8Array(asepriteFile.bytes),
     );
   }
-
   if (mode === "png-sequence") {
     return importers.importPngSequence(pngFiles);
   }
@@ -761,6 +784,13 @@ export async function convertSourceFiles(
       throw new Error("PSD source file is missing.");
     }
     return importers.importPsd(psdFile.file);
+  }
+  if (mode === "resprite") {
+    const respriteFile = files.find((file) => file.kind === "resprite");
+    if (respriteFile === undefined) {
+      throw new Error("ReSprite source file is missing.");
+    }
+    return importers.importResprite(respriteFile.file);
   }
 
   const jsonFile = files.find((file) => file.kind === "json");
@@ -832,6 +862,15 @@ export function getConversionSuccessStatus(
       `and ${layerCount} preserved ${layerNoun}. Ready to download.`
     );
   }
+  if (mode === "resprite") {
+    const layerCount = project.layers.length;
+    const layerNoun = layerCount === 1 ? "layer" : "layers";
+    return (
+      "Converted supported ReSprite frames and normal raster layers " +
+      `into an editable Aseprite timeline with ${frameCount} ${frameNoun} ` +
+      `and ${layerCount} preserved ${layerNoun}. Ready to download.`
+    );
+  }
   if (mode === "pixil") {
     const layerCount = project.layers.length;
     const layerNoun = layerCount === 1 ? "layer" : "layers";
@@ -896,6 +935,12 @@ export function getConversionErrorMessage(
     return diagnostic === null
       ? "PSD import failed: Check that the .psd file contains supported RGB 8-bit raster layers from the documented subset."
       : `PSD import failed: ${diagnostic}`;
+  }
+  if (mode === "resprite") {
+    const diagnostic = getRespriteImportDiagnostic(error);
+    return diagnostic === null
+      ? "ReSprite import failed: Check that the .resprite bundle contains supported normal raster layers and frame data."
+      : `ReSprite import failed: ${diagnostic}`;
   }
   if (mode === "pixil") {
     const diagnostic = getPixilImportDiagnostic(error);
@@ -1710,6 +1755,8 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
                       ? "Converting the Krita project browser-locally. This may take a while."
                       : mode === "psd"
                         ? "Converting the PSD project browser-locally. This may take a while."
+                        : mode === "resprite"
+                          ? "Converting the ReSprite project browser-locally. This may take a while."
                       : "Converting files browser-locally. This may take a while.",
     });
 
@@ -1759,6 +1806,8 @@ export function mountConverterUi(root: HTMLElement): ConverterUi {
                       ? "Krita conversion did not complete."
                       : mode === "psd"
                         ? "PSD conversion did not complete."
+                        : mode === "resprite"
+                          ? "ReSprite conversion did not complete."
                       : "Conversion did not complete.",
         error: getConversionErrorMessage(mode, error),
       });
