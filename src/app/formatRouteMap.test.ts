@@ -5,6 +5,7 @@ import {
   FORMAT_ROUTE_NODES,
   getFormatSurfacePresentation,
   getFormatRoute,
+  getFormatRouteLineGeometry,
   offsetFormatGlobeRotation,
   projectFormatSurfacePoint,
   shouldStartFormatGlobeDrag,
@@ -74,6 +75,18 @@ describe("format route selection", () => {
       source: { sourceMode: "png-sequence" },
       target: { outputFormat: "aseprite" },
     });
+  });
+
+  it("orients the connection line from the source toward the target", () => {
+    expect(getFormatRouteLineGeometry(10, 20, 70, 20)).toEqual({
+      angleRadians: 0,
+      leftPx: 10,
+      topPx: 20,
+      widthPx: 60,
+    });
+    expect(getFormatRouteLineGeometry(70, 20, 10, 20)?.angleRadians)
+      .toBeCloseTo(Math.PI);
+    expect(getFormatRouteLineGeometry(10, 20, 10, 20)).toBeNull();
   });
 
   it("uses locally hosted official artwork when an official format icon is available", () => {

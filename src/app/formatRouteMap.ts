@@ -34,6 +34,13 @@ export type FormatGlobeRotation = {
   rotationYDegrees: number;
 };
 
+export type FormatRouteLineGeometry = {
+  angleRadians: number;
+  leftPx: number;
+  topPx: number;
+  widthPx: number;
+};
+
 type FormatRouteInteractiveControl =
   | HTMLButtonElement
   | HTMLInputElement
@@ -160,6 +167,25 @@ export function offsetFormatGlobeRotation(
   };
 }
 
+export function getFormatRouteLineGeometry(
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number,
+): FormatRouteLineGeometry | null {
+  const deltaX = targetX - sourceX;
+  const deltaY = targetY - sourceY;
+  const distance = Math.hypot(deltaX, deltaY);
+  return distance === 0
+    ? null
+    : {
+        angleRadians: Math.atan2(deltaY, deltaX),
+        leftPx: sourceX,
+        topPx: sourceY,
+        widthPx: distance,
+      };
+}
+
 export function advanceFormatRouteSelection(
   selection: FormatRouteSelection,
   node: FormatRouteNode,
@@ -231,6 +257,7 @@ export function mountFormatRouteMap(
   const globeGrid = document.createElement("div");
   const globeShade = document.createElement("div");
   const routeLine = document.createElement("div");
+  const routeLineDirection = document.createElement("span");
   const nodeButtons = new Map<string, HTMLButtonElement>();
   const searchButtons = new Map<string, HTMLButtonElement>();
   const readout = document.createElement("div");
@@ -303,6 +330,8 @@ export function mountFormatRouteMap(
   globeShade.setAttribute("aria-hidden", "true");
   routeLine.className = "format-route-line";
   routeLine.setAttribute("aria-hidden", "true");
+  routeLineDirection.className = "format-route-line-direction";
+  routeLine.append(routeLineDirection);
   map.append(globe, globeShade, routeLine);
 
   for (const node of FORMAT_ROUTE_NODES) {
@@ -408,17 +437,15 @@ export function mountFormatRouteMap(
     const sourceY = sourceRect.top + sourceRect.height / 2 - mapRect.top;
     const targetX = targetRect.left + targetRect.width / 2 - mapRect.left;
     const targetY = targetRect.top + targetRect.height / 2 - mapRect.top;
-    const deltaX = targetX - sourceX;
-    const deltaY = targetY - sourceY;
-    const distance = Math.hypot(deltaX, deltaY);
-    if (distance === 0) {
+    const geometry = getFormatRouteLineGeometry(sourceX, sourceY, targetX, targetY);
+    if (geometry === null) {
       routeLine.hidden = true;
       return;
     }
-    routeLine.style.left = `${sourceX}px`;
-    routeLine.style.top = `${sourceY}px`;
-    routeLine.style.width = `${distance}px`;
-    routeLine.style.transform = `rotate(${Math.atan2(deltaY, deltaX)}rad)`;
+    routeLine.style.left = `${geometry.leftPx}px`;
+    routeLine.style.top = `${geometry.topPx}px`;
+    routeLine.style.width = `${geometry.widthPx}px`;
+    routeLine.style.transform = `rotate(${geometry.angleRadians}rad)`;
     routeLine.hidden = false;
   };
 
