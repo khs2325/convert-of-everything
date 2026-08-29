@@ -8,6 +8,7 @@ import { OpenRasterImportError } from "../core/importers/openraster";
 import { PixeloramaImportError } from "../core/importers/pixelorama";
 import { PixilImportError } from "../core/importers/pixil";
 import { PsdParserAdapterError } from "../core/importers/psd";
+import { RespriteImportError } from "../core/importers/resprite";
 import {
   PiskelImportError,
   type PiskelImportErrorCode,
@@ -172,6 +173,14 @@ function psd(name: string): BrowserSourceFile {
   return {
     file: new File(["psd"], name, { type: "image/vnd.adobe.photoshop" }),
     kind: "psd",
+    bytes: new ArrayBuffer(0),
+  };
+}
+
+function resprite(name: string): BrowserSourceFile {
+  return {
+    file: new File(["resprite"], name, { type: "application/x-resprite" }),
+    kind: "resprite",
     bytes: new ArrayBuffer(0),
   };
 }
@@ -424,6 +433,8 @@ describe("getSourceSelectionError", () => {
       .toBeNull();
     expect(getSourceSelectionError("krita", [kra("scene.kra")])).toBeNull();
     expect(getSourceSelectionError("psd", [psd("scene.psd")])).toBeNull();
+    expect(getSourceSelectionError("resprite", [resprite("scene.resprite")]))
+      .toBeNull();
   });
 
   it("rejects mode/file mismatches before conversion", () => {
@@ -483,6 +494,8 @@ describe("getSourceSelectionError", () => {
     ])).toContain("exactly one .kra file");
     expect(getSourceSelectionError("psd", [png("sprite.png")]))
       .toContain("exactly one .psd file");
+    expect(getSourceSelectionError("resprite", [png("sprite.png")]))
+      .toContain("exactly one .resprite file");
   });
 
   it("accepts PSD selections with the documented subset limitation", () => {
@@ -543,6 +556,9 @@ describe("getSourceSelectionError", () => {
     expect(getSourceSelectionState("psd", [psd("scene.psd")]).canConvert)
       .toBe(true);
     expect(getSourceSelectionState("psd", []).canConvert).toBe(false);
+    expect(getSourceSelectionState("resprite", [resprite("scene.resprite")]).canConvert)
+      .toBe(true);
+    expect(getSourceSelectionState("resprite", []).canConvert).toBe(false);
     expect(getSourceSelectionState("pixil", [pixil("scene.pixil")]).canConvert)
       .toBe(true);
     expect(getSourceSelectionState("pixil", []).canConvert).toBe(false);
@@ -556,6 +572,7 @@ describe("getSourceSelectionError", () => {
     expect(getSourceSelectionState("pixelorama", files).canConvert).toBe(false);
     expect(getSourceSelectionState("krita", files).canConvert).toBe(false);
     expect(getSourceSelectionState("psd", files).canConvert).toBe(false);
+    expect(getSourceSelectionState("resprite", files).canConvert).toBe(false);
     expect(getSourceSelectionState("pixil", files).canConvert).toBe(false);
   });
 
@@ -578,6 +595,8 @@ describe("getSourceSelectionError", () => {
     );
     expect(pixilInstructions).not.toContain("lossless");
     expect(pixilInstructions).not.toContain("full");
+    expect(MODE_LABELS.resprite).toBe("ReSprite project");
+    expect(getImportDropInstructions("resprite")).toContain("exactly one .resprite");
   });
 });
 
@@ -1155,6 +1174,7 @@ describe("convertSourceFiles", () => {
     const importPixil = vi.fn(async () => project);
     const importPiskel = vi.fn(async () => project);
     const importPsd = vi.fn(async () => project);
+    const importResprite = vi.fn(async () => project);
     const importSpritesheetGrid = vi.fn(async () => project);
     const importSpritesheetJson = vi.fn(async () => project);
     const importers = {
@@ -1168,6 +1188,7 @@ describe("convertSourceFiles", () => {
       importPngSequence,
       importPiskel,
       importPsd,
+      importResprite,
       importSpritesheetGrid,
       importSpritesheetJson,
     };
@@ -1182,6 +1203,7 @@ describe("convertSourceFiles", () => {
     const pixilProject = pixil("scene.pixil");
     const kritaProject = kra("scene.kra");
     const psdProject = psd("scene.psd");
+    const respriteProject = resprite("scene.resprite");
     const asepriteProject = aseprite("scene.aseprite");
 
     await convertSourceFiles("aseprite", [asepriteProject], gridOptions, importers);
@@ -1269,6 +1291,9 @@ describe("convertSourceFiles", () => {
 
     await convertSourceFiles("psd", [psdProject], gridOptions, importers);
     expect(importPsd).toHaveBeenCalledWith(psdProject.file);
+
+    await convertSourceFiles("resprite", [respriteProject], gridOptions, importers);
+    expect(importResprite).toHaveBeenCalledWith(respriteProject.file);
   });
 
   it("does not call an importer for an invalid selection", async () => {
@@ -1282,6 +1307,7 @@ describe("convertSourceFiles", () => {
       importPngSequence: vi.fn(async () => project),
       importPiskel: vi.fn(async () => project),
       importPsd: vi.fn(async () => project),
+      importResprite: vi.fn(async () => project),
       importSpritesheetGrid: vi.fn(async () => project),
       importSpritesheetJson: vi.fn(async () => project),
     };
@@ -1333,6 +1359,7 @@ describe("convertSourceFiles", () => {
       importPngSequence: vi.fn(async () => project),
       importPiskel: vi.fn(async () => project),
       importPsd: vi.fn(async () => project),
+      importResprite: vi.fn(async () => project),
       importSpritesheetGrid: vi.fn(async () => project),
       importSpritesheetJson: vi.fn(async () => project),
     };
@@ -1409,6 +1436,34 @@ describe("Pixil project conversion messages", () => {
     );
     expect(errorMessage).not.toContain(privateMessage);
     expect(errorMessage).not.toContain("lossless");
+  });
+});
+
+describe("ReSprite conversion messages", () => {
+  it("reports preserved supported frames and layers", () => {
+    expect(getConversionSuccessStatus("resprite", {
+      frames: [
+        { durationMs: 67, index: 0 },
+        { durationMs: 67, index: 1 },
+      ],
+      layers: [project.layers[0], project.layers[0]],
+    })).toBe(
+      "Converted supported ReSprite frames and normal raster layers into an editable Aseprite timeline with 2 frames and 2 preserved layers. Ready to download.",
+    );
+  });
+
+  it("shows importer-authored details without exposing private errors", () => {
+    const supportedError = new RespriteImportError(
+      "unsupported-feature",
+      "ReSprite layer 1 uses a clipping mask, which is unsupported.",
+    );
+    expect(getConversionErrorMessage("resprite", supportedError)).toBe(
+      "ReSprite import failed: ReSprite layer 1 uses a clipping mask, which is unsupported.",
+    );
+    expect(getConversionErrorMessage(
+      "resprite",
+      new Error("C:\\Users\\private\\sprite.resprite bytes"),
+    )).not.toContain("private");
   });
 });
 

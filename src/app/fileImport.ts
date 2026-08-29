@@ -11,10 +11,14 @@ import { getPixeloramaImportDiagnostic } from "../core/importers/pixelorama";
 import { getPixilImportDiagnostic } from "../core/importers/pixil";
 import { getPiskelImportDiagnostic } from "../core/importers/piskel";
 import { getPsdParserDiagnostic } from "../core/importers/psd";
+import {
+  getRespriteImportDiagnostic,
+  MAX_RESPRITE_FILE_BYTES,
+} from "../core/importers/resprite";
 import { getSpritesheetJsonImportDiagnostic } from "../core/importers/spritesheetJson";
 
 export const SUPPORTED_SOURCE_ACCEPT =
-  ".png,.json,.piskel,.pixil,.gif,.apng,.ora,.pxo,.kra,.psd,.ase,.aseprite,image/png,image/gif,image/apng,image/openraster,application/x-pixelorama,application/x-krita,application/x-kra,image/vnd.adobe.photoshop,image/x-photoshop,image/psd,application/x-photoshop,application/photoshop,application/psd,application/x-aseprite,image/x-aseprite,application/json";
+  ".png,.json,.piskel,.pixil,.gif,.apng,.ora,.pxo,.kra,.psd,.resprite,.ase,.aseprite,image/png,image/gif,image/apng,image/openraster,application/x-pixelorama,application/x-krita,application/x-kra,image/vnd.adobe.photoshop,image/x-photoshop,image/psd,application/x-photoshop,application/photoshop,application/psd,application/x-resprite,application/x-aseprite,image/x-aseprite,application/json";
 
 export type FileImportFormat =
   | "png-sequence"
@@ -28,12 +32,13 @@ export type FileImportFormat =
   | "pixelorama"
   | "krita"
   | "psd"
+  | "resprite"
   | "aseprite";
 
 export type BrowserSourceFile =
   | {
       file: File;
-      kind: "png" | "gif" | "apng" | "ora" | "pxo" | "kra" | "psd" | "pixil" | "aseprite";
+      kind: "png" | "gif" | "apng" | "ora" | "pxo" | "kra" | "psd" | "pixil" | "resprite" | "aseprite";
       bytes: ArrayBuffer;
     }
   | {
@@ -62,6 +67,7 @@ export type SourceFilePresentation = {
     | "Pixelorama project"
     | "Krita project"
     | "PSD project"
+    | "ReSprite project"
     | "Aseprite project";
 };
 
@@ -87,6 +93,7 @@ const SOURCE_TYPE_LABELS: Record<
   pxo: "Pixelorama project",
   kra: "Krita project",
   psd: "PSD project",
+  resprite: "ReSprite project",
   aseprite: "Aseprite project",
 };
 
@@ -209,6 +216,9 @@ export function getSourceKind(
   if (extension === ".psd") {
     return "psd";
   }
+  if (extension === ".resprite") {
+    return "resprite";
+  }
   if (extension === ".ase" || extension === ".aseprite") {
     return "aseprite";
   }
@@ -241,6 +251,9 @@ export function getSourceKind(
   if (mimeType === "application/x-aseprite" || mimeType === "image/x-aseprite") {
     return "aseprite";
   }
+  if (mimeType === "application/x-resprite") {
+    return "resprite";
+  }
   if (mimeType === "image/png") {
     return "png";
   }
@@ -260,6 +273,7 @@ async function readSourceFile(
     kind === "kra" ||
     kind === "psd" ||
     kind === "pixil" ||
+    kind === "resprite" ||
     kind === "aseprite"
   ) {
     return { file, kind, bytes: await file.arrayBuffer() };
@@ -326,6 +340,11 @@ const FORMAT_HELP: Record<FileImportFormat, FormatHelp> = {
     suggestion:
       "Check that the .psd file contains supported RGB 8-bit raster layers from the documented subset.",
   },
+  resprite: {
+    label: "ReSprite project",
+    suggestion:
+      "Check that the .resprite bundle contains supported normal raster layers, frame metadata, and CellData PNG files.",
+  },
   aseprite: {
     label: "Aseprite project",
     suggestion:
@@ -363,6 +382,9 @@ function getFormatHelp(
   }
   if (files.some((file) => file.kind === "psd")) {
     return FORMAT_HELP.psd;
+  }
+  if (files.some((file) => file.kind === "resprite")) {
+    return FORMAT_HELP.resprite;
   }
   if (files.some((file) => file.kind === "aseprite")) {
     return FORMAT_HELP.aseprite;
@@ -438,6 +460,14 @@ function getImporterMessage(
       ? message
       : getPsdParserDiagnostic(error);
   }
+  if (format === "resprite") {
+    const message = error instanceof Error
+      ? error.message.replace(/\s+/g, " ").trim()
+      : "";
+    return message === "ReSprite mode requires exactly one .resprite file."
+      ? message
+      : getRespriteImportDiagnostic(error);
+  }
   if (format === "aseprite") {
     const message = error instanceof Error
       ? error.message.replace(/\s+/g, " ").trim()
@@ -487,6 +517,9 @@ function getSelectionStatus(
   if (format === "psd") {
     return "Selected 1 PSD project. The supported RGB 8-bit raster-layer subset will be checked browser-locally.";
   }
+  if (format === "resprite") {
+    return "Selected 1 ReSprite project. Supported frames and normal raster layers will be checked browser-locally.";
+  }
   if (format === "aseprite") {
     return "Selected 1 Aseprite project. The supported 32-bit RGBA subset will be checked browser-locally.";
   }
@@ -530,7 +563,7 @@ export function bindFileImportControl(
       if (kind === null) {
         input.value = "";
         showError(
-          `Unsupported file "${file.name}". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite files only.`,
+          `Unsupported file "${file.name}". Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, ReSprite, or Aseprite files only.`,
         );
         return false;
       }
@@ -538,6 +571,13 @@ export function bindFileImportControl(
         input.value = "";
         showError(
           `Aseprite project import failed. The selected file exceeds the ${MAX_ASEPRITE_FILE_BYTES}-byte browser-local limit.`,
+        );
+        return false;
+      }
+      if (kind === "resprite" && file.size > MAX_RESPRITE_FILE_BYTES) {
+        input.value = "";
+        showError(
+          `ReSprite project import failed. The selected file exceeds the ${MAX_RESPRITE_FILE_BYTES}-byte browser-local limit.`,
         );
         return false;
       }
@@ -651,7 +691,7 @@ export function mountFileImportUi(
   dropInstructions.textContent =
     "Drag and drop files here, or choose files with the control below.";
   supportedTypes.textContent =
-    "Supported files: PNG images (.png), JSON metadata (.json), Piskel projects (.piskel), Pixil/Pixilart projects (.pixil), GIF/APNG animations, OpenRaster (.ora), Pixelorama (.pxo), Krita (.kra), PSD (.psd), and supported 32-bit RGBA Aseprite projects (.ase, .aseprite).";
+    "Supported files: PNG images (.png), JSON metadata (.json), Piskel projects (.piskel), Pixil/Pixilart projects (.pixil), GIF/APNG animations, OpenRaster (.ora), Pixelorama (.pxo), Krita (.kra), PSD (.psd), ReSprite (.resprite), and supported 32-bit RGBA Aseprite projects (.ase, .aseprite).";
   privacyNotice.textContent =
     "Your files stay in this browser and are never uploaded.";
   input.type = "file";
@@ -659,7 +699,7 @@ export function mountFileImportUi(
   input.accept = SUPPORTED_SOURCE_ACCEPT;
   input.setAttribute(
     "aria-label",
-    "Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, or Aseprite sprite source files",
+    "Choose PNG, JSON, Piskel, Pixil/Pixilart, GIF, APNG, OpenRaster, Pixelorama, Krita, PSD, ReSprite, or Aseprite sprite source files",
   );
   errorOutput.setAttribute("role", "alert");
   errorOutput.setAttribute("aria-live", "assertive");

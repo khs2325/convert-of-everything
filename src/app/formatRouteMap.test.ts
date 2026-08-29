@@ -77,6 +77,13 @@ describe("format route selection", () => {
     });
   });
 
+  it("offers ReSprite as a source for an Aseprite conversion route", () => {
+    expect(getFormatRoute({ sourceId: "resprite", targetId: "aseprite" })).toMatchObject({
+      source: { label: "ReSprite", sourceMode: "resprite" },
+      target: { label: "Aseprite", outputFormat: "aseprite" },
+    });
+  });
+
   it("orients the connection line from the source toward the target", () => {
     expect(getFormatRouteLineGeometry(10, 20, 70, 20)).toEqual({
       angleRadians: 0,

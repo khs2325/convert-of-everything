@@ -201,6 +201,27 @@ describe("static multi-page site", () => {
     expect(html).toContain('href="/compatibility-lab/"');
   });
 
+  it("publishes a focused ReSprite to Aseprite search landing page", async () => {
+    const page = manifest.find(
+      (entry) => entry.route === "/guides/resprite-to-aseprite/",
+    )!;
+    const html = await readBuiltPage(page);
+    const words = stripHtml(html).match(/[A-Za-z0-9][A-Za-z0-9'’-]*/gu) ?? [];
+
+    expect(html).toContain(
+      "<title>ReSprite to Aseprite Converter: Frames and Layers | Sprite Converter</title>",
+    );
+    expect(html).toContain("Convert ReSprite to Aseprite in your browser");
+    expect(html).toContain(
+      '<link rel="canonical" href="https://sprite-to-aseprite.pages.dev/guides/resprite-to-aseprite/">',
+    );
+    expect(html).toContain("How to convert ReSprite to Aseprite");
+    expect(html).toContain("What the supported importer preserves");
+    expect(html).toContain("https://resprite.fengeon.com/docs/basic/export");
+    expect(html).toContain('href="/#converter"');
+    expect(words.length).toBeGreaterThan(750);
+  });
+
   it("discloses possible Google advertising data use and consent prerequisites", async () => {
     const privacyPage = manifest.find((page) => page.route === "/privacy/")!;
     const html = await readBuiltPage(privacyPage);

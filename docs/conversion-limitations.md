@@ -14,6 +14,7 @@ files to a server or send them to a remote image-processing service.
 | Input | Layers | Frames | Timing | Effects | Masks | Groups | Palettes | Metadata |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Aseprite `.ase` or `.aseprite` | Preserves supported direct normal raster layers. | Rebuilds ordered frames from compressed RGBA image cels. | Positive millisecond durations and supported tags are converted. | Non-normal blend behavior is rejected. | Not represented; files that depend on unsupported structures are rejected. | Groups and nested layers are rejected. | RGBA palette chunks are validated as metadata, but palette identity is not preserved. | Raw chunk order, UUID identity, linked-cel relationships, user data, profiles, slices, tilesets, and editor-only metadata are not preserved. |
+| ReSprite `.resprite` | Preserves supported normal raster layer names, order, visibility, opacity, positions, and PNG-backed cel pixels. | Rebuilds concrete and inherited cels across the declared frame timeline. | Frame-rate duration units become normalized whole-millisecond durations; supported clip heads become frame tags. | Non-normal blend modes are rejected. | Clipping masks are rejected. | Layer groups are rejected. | Palettes are not preserved; decoded pixels become RGBA. | Tilemaps, reference images, Deco modules, project/editor metadata, and unsupported bundle entries are not mapped to output. |
 | PNG sequence | No source layer data; creates one `Main` layer. | One frame per PNG; all images must share dimensions. | Configurable duration, default 100 ms. | Not present in flat PNGs. | Not present in flat PNGs. | Not present in flat PNGs. | Palette identity is not preserved; pixels become RGBA. | No editor metadata is preserved. |
 | Spritesheet grid | No source layer data; creates one `Main` layer. | Grid cells become frames; grid must exactly cover the image. | Default 100 ms per frame. | Not present in flat spritesheets. | Not present in flat spritesheets. | Not present in flat spritesheets. | Palette identity is not preserved; pixels become RGBA. | Grid settings are conversion inputs, not restored editor metadata. |
 | Spritesheet PNG + JSON | No source layer data; creates one `Main` layer. | Supported rectangles, trim, and common clockwise rotation are rebuilt. | Per-frame durations are supported; missing values default to 100 ms. | Not preserved. | Not preserved. | Not preserved. | Palette identity is not preserved; pixels become RGBA. | Only the documented frame rectangle, duration, trim, rotation, and supported tag subset is interpreted. Other atlas metadata is not preserved. |
@@ -43,7 +44,7 @@ editable source layer structure. They can rebuild timeline frames and convert
 frames, but the converter cannot recover original layers, effects, masks,
 groups, palettes, or editor metadata that are absent from the source.
 
-Project formats such as Piskel, OpenRaster, Pixelorama, Pixil/Pixilart, Krita,
+Project formats such as ReSprite, Piskel, OpenRaster, Pixelorama, Pixil/Pixilart, Krita,
 and PSD can preserve layers only when the source file contains layer data and the importer
 supports that documented subset. A flattened preview or composite image is not
 used to reconstruct missing source layers.
