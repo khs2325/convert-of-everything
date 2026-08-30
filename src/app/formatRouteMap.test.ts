@@ -96,6 +96,20 @@ describe("format route selection", () => {
     expect(getFormatRouteLineGeometry(10, 20, 10, 20)).toBeNull();
   });
 
+  it("keeps the line and arrow outside the selected format icons", () => {
+    expect(getFormatRouteLineGeometry(10, 20, 70, 20, 12, 16)).toEqual({
+      angleRadians: 0,
+      leftPx: 22,
+      topPx: 20,
+      widthPx: 32,
+    });
+    const closeNodes = getFormatRouteLineGeometry(10, 20, 20, 20, 12, 16);
+    expect(closeNodes).toMatchObject({ leftPx: expect.any(Number) });
+    expect(closeNodes!.widthPx).toBeCloseTo(6);
+    expect(closeNodes!.leftPx).toBeGreaterThan(10);
+    expect(closeNodes!.leftPx + closeNodes!.widthPx).toBeLessThan(20);
+  });
+
   it("uses locally hosted official artwork when an official format icon is available", () => {
     expect(node("png-sequence").iconSrc).toBe("/format-icons/png.png");
     expect(node("atlas-json").iconSrc).toBe("/format-icons/json.gif");

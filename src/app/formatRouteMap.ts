@@ -173,18 +173,32 @@ export function getFormatRouteLineGeometry(
   sourceY: number,
   targetX: number,
   targetY: number,
+  sourceInsetPx = 0,
+  targetInsetPx = 0,
 ): FormatRouteLineGeometry | null {
   const deltaX = targetX - sourceX;
   const deltaY = targetY - sourceY;
   const distance = Math.hypot(deltaX, deltaY);
-  return distance === 0
-    ? null
-    : {
-        angleRadians: Math.atan2(deltaY, deltaX),
-        leftPx: sourceX,
-        topPx: sourceY,
-        widthPx: distance,
-      };
+  if (distance === 0) return null;
+
+  const requestedSourceInset = Math.max(0, sourceInsetPx);
+  const requestedTargetInset = Math.max(0, targetInsetPx);
+  const requestedInsetTotal = requestedSourceInset + requestedTargetInset;
+  const maximumInsetTotal = Math.max(0, distance - 6);
+  const insetScale = requestedInsetTotal > maximumInsetTotal && requestedInsetTotal > 0
+    ? maximumInsetTotal / requestedInsetTotal
+    : 1;
+  const sourceInset = requestedSourceInset * insetScale;
+  const targetInset = requestedTargetInset * insetScale;
+  const unitX = deltaX / distance;
+  const unitY = deltaY / distance;
+
+  return {
+    angleRadians: Math.atan2(deltaY, deltaX),
+    leftPx: sourceX + unitX * sourceInset,
+    topPx: sourceY + unitY * sourceInset,
+    widthPx: distance - sourceInset - targetInset,
+  };
 }
 
 export function advanceFormatRouteSelection(
@@ -438,7 +452,16 @@ export function mountFormatRouteMap(
     const sourceY = sourceRect.top + sourceRect.height / 2 - mapRect.top;
     const targetX = targetRect.left + targetRect.width / 2 - mapRect.left;
     const targetY = targetRect.top + targetRect.height / 2 - mapRect.top;
-    const geometry = getFormatRouteLineGeometry(sourceX, sourceY, targetX, targetY);
+    const sourceInset = Math.max(sourceRect.width, sourceRect.height) / 2 + 3;
+    const targetInset = Math.max(targetRect.width, targetRect.height) / 2 + 13;
+    const geometry = getFormatRouteLineGeometry(
+      sourceX,
+      sourceY,
+      targetX,
+      targetY,
+      sourceInset,
+      targetInset,
+    );
     if (geometry === null) {
       routeLine.hidden = true;
       return;
